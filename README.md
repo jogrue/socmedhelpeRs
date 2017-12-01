@@ -9,7 +9,7 @@ It is installed from within R using
 ## Install
 ```R
 library(devtools)
-devtools::install_github("jogrue/jogRu")
+devtools::install_github("jogrue/RfacebookHelperFunctions")
 
 # I also recommend updating these packages.
 devtools::install-github("pablobarbera/Rfacebook/Rfacebook")
@@ -30,6 +30,9 @@ fb_oauth <- fbOAuth(app_id="123456789",
 # A character vector is created
 my_pages <- c(cnn = "cnn",
               bbc = "bbcnews")
+
+# Loading the package
+library("RfacebookHelperFunctions")
 
 # The two pages CNN and BBC news are updated and the results are stored in
 # the user's home directory in the folder "temp". They are named cnn.rds and

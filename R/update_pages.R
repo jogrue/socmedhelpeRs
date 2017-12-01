@@ -1,11 +1,11 @@
 #' Update or get posts from a Facebook page
-#' 
+#'
 #' This function updates one Facebook page with \link{Rfacebook}'s getPage. It
 #' looks for a previously stored data.frame (readable by readRDS, e.g.,
 #' bbcnews.rds). If there is one, it tries to scrape newer (and older) posts
 #' than the ones already stored in the data.frame. Otherwise it creats a new
 #' data.frame.
-#' 
+#'
 #' @param pagename A page name.
 #' @param token Either a temporary access token created at
 #'   https://developers.facebook.com/tools/explorer or the OAuth token created
@@ -13,7 +13,7 @@
 #' @param datafile The full path to a RDS data file.
 #' @param go_back Go back in time, not only update newer posts, but also get
 #'   older ones. Default is TRUE.
-#' @param n_posts The number of posts to scrape from the page, defaults to 100. 
+#' @param n_posts The number of posts to scrape from the page, defaults to 100.
 #' @param feed If TRUE, the function will also return posts on the page that
 #'   were made by others (not only the admin of the page).
 #' @param reactions If TRUE, will add variables to the data frame with the total
@@ -29,17 +29,17 @@
 #' fb_oauth <- fbOAuth(app_id="123456789",
 #'                     app_secret="1A2B3C4D",
 #'                     extended_permissions = TRUE)
-#' 
+#'
 #' # The BBC news page's posts are updated and stored in the user's home
 #' # folder in the directory "temp" as "bbc.rds". If the file does not already
 #' # exist a new file is created
 #' update_page("bbcnews", fb_oauth, "~/temp/bbc.rds")
-#' 
+#'
 #' # The data set can be loaded with readRDS
 #' readRDS("~/temp/bbc.rds")
-#' 
-update_page <- function(pagename, token, datafile, go_back = TRUE, n_posts = 100,
-                        feed = FALSE, reactions = TRUE) {
+#'
+update_page <- function(pagename, token, datafile, go_back = TRUE,
+                        n_posts = 100, feed = FALSE, reactions = FALSE) {
   finished <- FALSE
   if (is.null(token))
   {
@@ -142,7 +142,7 @@ update_page <- function(pagename, token, datafile, go_back = TRUE, n_posts = 100
 }
 
 #' Update multiple Facebook pages
-#' 
+#'
 #' This function updates multiple Facebook pages with \link{Rfacebook}'s
 #' getPage. makes use of the \link{update_page} function in this package. For
 #' each page in the provided character vector pages it looks for a previously
@@ -159,14 +159,14 @@ update_page <- function(pagename, token, datafile, go_back = TRUE, n_posts = 100
 #'   with fbOAuth.
 #' @param go_back Go back in time, not only update newer posts, but also get
 #'   older ones. Default is TRUE.
-#' @param n_posts The number of posts to scrape from each page, defaults to 100. 
+#' @param n_posts The number of posts to scrape from each page, defaults to 100.
 #' @param feed If TRUE, the function will also return posts from each page that
 #'   were made by others (not only the admin of the page).
 #' @param reactions If TRUE, will add variables to the data frame with the total
 #'   count of reactions: love, haha, wow, sad, angry.
 
 #' @return TRUE for all pages the update went through.
-#' 
+#'
 #' @export
 #'
 #' @examples
@@ -175,7 +175,7 @@ update_page <- function(pagename, token, datafile, go_back = TRUE, n_posts = 100
 #' fb_oauth <- fbOAuth(app_id="123456789",
 #'                     app_secret="1A2B3C4D",
 #'                     extended_permissions = TRUE)
-#' 
+#'
 #' # A character vector is created
 #' my_pages <- c(cnn = "cnn",
 #'               bbc = "bbcnews")
@@ -185,7 +185,7 @@ update_page <- function(pagename, token, datafile, go_back = TRUE, n_posts = 100
 #' update_pages(pages = my_pages, token = fb_outh, datadir = "~/temp")
 update_pages <- function(pages = NULL, token = NULL, datadir = "./data",
                          go_back = TRUE, n_posts = 100, feed = FALSE,
-                         reactions = TRUE) {
+                         reactions = FALSE) {
   # Checking parameters
   finished <- FALSE
   if (is.null(pages)) {

@@ -10,7 +10,13 @@ It is installed from within R using
 ```R
 library(devtools)
 devtools::install_github("jogrue/jogRu")
+
+# I also recommend updating these packages.
+devtools::install-github("pablobarbera/Rfacebook/Rfacebook")
+devtools::install_github("r-lib/httr")
 ```
+
+
 
 ## Usage
 

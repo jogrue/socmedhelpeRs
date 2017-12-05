@@ -5,7 +5,7 @@
 \title{Update multiple Facebook pages}
 \usage{
 update_pages(pages = NULL, token = NULL, datadir = "./data",
-  go_back = TRUE, n_posts = 100, feed = FALSE, reactions = TRUE)
+  go_back = TRUE, n_posts = 100, feed = FALSE, reactions = FALSE)
 }
 \arguments{
 \item{pages}{A named character vector. Names are the data file names,

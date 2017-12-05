@@ -5,7 +5,7 @@
 \title{Update or get posts from a Facebook page}
 \usage{
 update_page(pagename, token, datafile, go_back = TRUE, n_posts = 100,
-  feed = FALSE, reactions = TRUE)
+  feed = FALSE, reactions = FALSE)
 }
 \arguments{
 \item{pagename}{A page name.}

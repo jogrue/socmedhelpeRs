@@ -69,7 +69,7 @@ update_page <- function(pagename, token, datafile, go_back = TRUE,
         tryCatch(
           {
             Rfacebook::getPage(pagename, token = token, n = n_posts,
-                               reactions = TRUE, feed = TRUE,
+                               reactions = reactions, feed = feed,
                                since = newest)
           }, warning = function(w) {
             warning(paste0("A warning occured during the second run: ", w))
@@ -87,7 +87,7 @@ update_page <- function(pagename, token, datafile, go_back = TRUE,
       update_data <- tryCatch(
         {
           Rfacebook::getPage(pagename, token = token, n = n_posts,
-                             reactions = TRUE, feed = TRUE,
+                             reactions = reactions, feed = feed,
                              until = oldest)
         }, warning = function(w) {
           warning(paste0("A warning occured during the first run: ", w))
@@ -97,7 +97,7 @@ update_page <- function(pagename, token, datafile, go_back = TRUE,
           tryCatch(
             {
               Rfacebook::getPage(pagename, token = token, n = n_posts,
-                                 reactions = TRUE, feed = TRUE,
+                                 reactions = reactions, feed = feed,
                                  until = oldest)
             }, warning = function(w) {
               warning(paste0("A warning occured during the second run: ", w))
@@ -117,7 +117,7 @@ update_page <- function(pagename, token, datafile, go_back = TRUE,
     page_data <- tryCatch(
       {
         Rfacebook::getPage(pagename, token = token, n = n_posts,
-                           reactions = TRUE, feed = TRUE)
+                           reactions = reactions, feed = feed)
       }, warning = function(w) {
         warning(paste0("A warning occured during the first run: ", w))
       }, error = function(e) {
@@ -126,7 +126,7 @@ update_page <- function(pagename, token, datafile, go_back = TRUE,
         tryCatch(
           {
             Rfacebook::getPage(pagename, token = token, n = n_posts,
-                               reactions = TRUE, feed = TRUE)
+                               reactions = reactions, feed = feed)
           }, warning = function(w) {
             warning(paste0("A warning occured during the second run: ", w))
           }, error = function(e) {
@@ -136,8 +136,8 @@ update_page <- function(pagename, token, datafile, go_back = TRUE,
       }
     )
   }
-  page_data <- dplyr::distinct(page_data)
-  page_data <- dplyr::arrange(page_data, created_time)
+  page_data <- dplyr::arrange(page_data, dplyr::desc(created_time))
+  page_data <- dplyr::distinct(page_data, id)
   saveRDS(page_data, file = datafile)
   finished <- TRUE
   return(finished)

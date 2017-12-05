@@ -49,16 +49,18 @@ update_page <- function(pagename, token, datafile, go_back = TRUE,
     page_data <- readRDS(datafile)
     message(paste0(datafile," found. Updating data ..."))
     # oldest post
-    oldest <- as.numeric(lubridate::ymd_hms(min(page_data$created_time)))
+    oldest <- substr(min(page_data$created_time), 1, 10)
     # newest post
-    newest <- as.numeric(lubridate::ymd_hms(max(page_data$created_time)))
+    newest <- substr(max(page_data$created_time), 1, 10)
+    # Issue 158: https://github.com/pablobarbera/Rfacebook/issues/158
+    #newest <- as.numeric(lubridate::ymd_hms(max(page_data$created_time)))
     # Get newer posts
     message(paste0("Try to fetch newer postings for ", pagename, "."))
     update_data <- tryCatch(
       {
         Rfacebook::getPage(pagename, token = token, n = n_posts,
                            reactions = reactions, feed = feed,
-                           since = newest + 1)
+                           since = newest)
       }, warning = function(w) {
         warning(paste0("A warning occured during the first run: ", w))
       }, error = function(e) {
@@ -68,7 +70,7 @@ update_page <- function(pagename, token, datafile, go_back = TRUE,
           {
             Rfacebook::getPage(pagename, token = token, n = n_posts,
                                reactions = TRUE, feed = TRUE,
-                               since = newest + 1)
+                               since = newest)
           }, warning = function(w) {
             warning(paste0("A warning occured during the second run: ", w))
           }, error = function(e) {
@@ -86,7 +88,7 @@ update_page <- function(pagename, token, datafile, go_back = TRUE,
         {
           Rfacebook::getPage(pagename, token = token, n = n_posts,
                              reactions = TRUE, feed = TRUE,
-                             until = oldest - 1)
+                             until = oldest)
         }, warning = function(w) {
           warning(paste0("A warning occured during the first run: ", w))
         }, error = function(e) {
@@ -96,7 +98,7 @@ update_page <- function(pagename, token, datafile, go_back = TRUE,
             {
               Rfacebook::getPage(pagename, token = token, n = n_posts,
                                  reactions = TRUE, feed = TRUE,
-                                 until = oldest - 1)
+                                 until = oldest)
             }, warning = function(w) {
               warning(paste0("A warning occured during the second run: ", w))
             }, error = function(e) {

@@ -137,7 +137,7 @@ update_page <- function(pagename, token, datafile, go_back = TRUE,
     )
   }
   page_data <- dplyr::arrange(page_data, dplyr::desc(created_time))
-  page_data <- dplyr::distinct(page_data, id)
+  page_data <- dplyr::distinct(page_data, id, .keep_all = TRUE)
   saveRDS(page_data, file = datafile)
   finished <- TRUE
   return(finished)

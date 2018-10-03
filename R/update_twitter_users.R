@@ -31,7 +31,7 @@
 #'
 #' # The data set can be loaded with readRDS
 #' readRDS("~/temp/bbc_world.rds")
-update_twitter_feed <- function(user, datafile, go_back = TRUE,
+update_twitter_user <- function(user, datafile, go_back = TRUE,
                                 n_posts = 100) {
   updated <- FALSE
   feed_data <- NULL
@@ -44,7 +44,7 @@ update_twitter_feed <- function(user, datafile, go_back = TRUE,
     # newest tweet
     newest <- max(feed_data$id)
     # Get newer posts
-    message(paste0("Try to fetch newer tweets for ", user, "."))
+    message(paste0("Trying to fetch new tweets for ", user, "."))
     update_data <- tryCatch(
       {
         twitteR::userTimeline(user = user,
@@ -79,8 +79,8 @@ update_twitter_feed <- function(user, datafile, go_back = TRUE,
       update_data <- twitteR::twListToDF(twList = update_data)
       feed_data <- rbind(feed_data, update_data)
       updated <- TRUE
-      update_data <- NULL
     }
+    update_data <- NULL
     if (go_back) {
       # Get older tweets
       message(paste0("Trying to fetch older tweets for ", user, "."))
@@ -111,14 +111,13 @@ update_twitter_feed <- function(user, datafile, go_back = TRUE,
           )
         }
       )
-      if (length(update_data) == 0) {
+      if (length(update_data) <= 1) {
         message(paste0("No older tweets found for ", user, "."))
+        update_data <- NULL
       } else {
-        # update_data <- do.call("rbind", lapply(update_data, as.data.frame))
         update_data <- twitteR::twListToDF(twList = update_data)
         feed_data <- rbind(feed_data, update_data)
         updated <- TRUE
-        update_data <- NULL
       }
     }
   } else {
@@ -223,7 +222,7 @@ update_twitter_users <- function(users = NULL, datadir = "./raw-data",
   }
   datafiles <- file.path(datadir, paste0(datafiles, ".rds"))
   # Run update for every account
-  finished <- purrr::map2(users, datafiles, update_twitter_feed,
+  finished <- purrr::map2(users, datafiles, update_twitter_user,
                           n_posts = n_posts, go_back = go_back)
   return(finished)
 }

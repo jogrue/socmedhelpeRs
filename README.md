@@ -1,6 +1,6 @@
 # RfacebookHelperFunctions
-This is an R package that includes functions to get updates for Facebook pages
-with [Rfacebook](https://github.com/pablobarbera/Rfacebook) and for Twitter
+This is an R package with functions to retrieve updates from Facebook pages
+with [Rfacebook](https://github.com/pablobarbera/Rfacebook) and from Twitter
 feeds with [TwitteR](https://github.com/geoffjentry/twitteR).
 
 ATTENTION: Facebook does not work anymore for me. Because of Facebook's API
@@ -27,7 +27,7 @@ devtools::install_github("r-lib/httr")
 
 ```R
 
-# You have to authenticate with Twitter's API first. For more in this visit
+# You have to authenticate with Twitter's API first. For more on this visit
 # TwitteR documentation.
 setup_twitter_oauth(consumer_key = "1234",
                     consumer_secret = "1234",
@@ -46,7 +46,7 @@ update_twitter_users(users = my_users, datadir = "~/temp")
 ### Facebook stopped working if you do not have an app that has been reviewed
 ### by Facebook.
 
-# You have to authenticate with Facebook's API first. For more in this visit
+# You have to authenticate with Facebook's API first. For more on this visit
 # Rfacebooks documentation.
 fb_oauth <- fbOAuth(app_id="123456789",
                     app_secret="1A2B3C4D",

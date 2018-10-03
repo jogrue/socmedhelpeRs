@@ -2,5 +2,5 @@
 
 export(update_page)
 export(update_pages)
-export(update_twitter_feed)
+export(update_twitter_user)
 export(update_twitter_users)

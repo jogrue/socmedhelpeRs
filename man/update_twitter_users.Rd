@@ -4,8 +4,8 @@
 \alias{update_twitter_users}
 \title{Update multiple Twitter users' timelines}
 \usage{
-update_twitter_users(users = NULL, datadir = "./raw-data",
-  go_back = TRUE, n_posts = 100)
+update_twitter_users(users, datadir = "./raw-data", n = 100,
+  token = NULL, debug = FALSE)
 }
 \arguments{
 \item{users}{A named character vector. Names are the data file names,
@@ -13,34 +13,39 @@ characters are the Twitter user names that will be updated (see example).}
 
 \item{datadir}{A directory containing the stored data sets (as "name.rds").}
 
-\item{go_back}{Go back in time, not only update newer posts, but also get
-older ones. Default is TRUE.}
+\item{n}{The number of posts to scrape from each page, defaults to 100.}
 
-\item{n_posts}{The number of posts to scrape from each page, defaults to 100.}
+\item{token}{Provide a token, defaults to NULL.}
+
+\item{debug}{Show more messages during the updating process, default is
+FALSE.}
 }
 \value{
 TRUE for all pages the update went through.
 }
 \description{
-This function updates multiple Twitter users' timelines with \link{TwitteR}'s
-userTimeline() function. It makes use of the \link{update_twitter_user}
+This function updates multiple Twitter users' timelines with \link{rtweet}'s
+get_timeline() function. It makes use of the \link{update_twitter_user}
 function in this package. For each user in the provided character vector
 users it looks for a previously stored data.frame (stored in the datadir
 under the name provided in the named vector "users" with the file extension
-.rds). If there is one, it tries to scrape newer (and older) tweets than the
-ones already stored in the data.frame. Otherwise it creats a new data.frame.
+.rds). If there is one, it tries to scrape newer and older tweets than the
+ones already stored in the data.frame. Otherwise it creates a new
+data.frame.
 }
 \examples{
 # You have to authenticate with Twitter's API first. For more in this visit
-# TwitteR documentation.
-setup_twitter_oauth(consumer_key = "1234",
-                    consumer_secret = "1234",
-                    access_token = "1234",
-                    access_secret = "1234")
+# rtweet documentation.
+rtweet::create_token(app = "R_app",
+                     consumer_key = "1234",
+                     consumer_secret = "1234",
+                     access_token = "1234",
+                     access_secret = "1234")
 
 # A character vector is created
 my_users <- c(cnn = "CNN",
               bbc_world = "BBCWorld")
+
 # CNN's and BBC's Twitter walls are updated and the results are stored in
 # the user's home directory in the folder "temp". They are named cnn.rds and
 # bbc_world.rds. If they do not already exist, both data sets are created.

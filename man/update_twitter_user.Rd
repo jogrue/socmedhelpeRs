@@ -4,35 +4,39 @@
 \alias{update_twitter_user}
 \title{Update or get tweets from a Twitter wall}
 \usage{
-update_twitter_user(user, datafile, go_back = TRUE, n_posts = 100)
+update_twitter_user(user, datafile, n = 100, token = NULL,
+  debug = FALSE)
 }
 \arguments{
 \item{user}{A twitter user name.}
 
 \item{datafile}{The full path to an RDS data file.}
 
-\item{go_back}{Go back in time, not only update newer tweets, but also get
-older ones. Default is TRUE.}
+\item{n}{The number of tweets to scrape from the wall, defaults to 100.}
 
-\item{n_posts}{The number of tweets to scrape from the wall, defaults to 100.}
+\item{token}{Provide a token, defaults to NULL.}
+
+\item{debug}{Show more messages during the updating process, default is
+FALSE.}
 }
 \value{
 TRUE if it ran through.
 }
 \description{
-This function updates one Twitter user's wall with \link{TwitteR}'s
-userTimeline() function. It looks for a previously stored data.frame
-(readable by readRDS). If there is one, it tries to scrape newer (and older)
-tweets than the ones already stored in the data.frame. Otherwise it creats a new
-data.frame.
+This function updates one Twitter user's wall with \link{rtweet}'s
+get_timeline() function. It looks for a previously stored data.frame
+(readable by readRDS). If there is one, it tries to scrape newer and older
+tweets than the ones already stored in the data.frame. Otherwise it creats a
+new data.frame.
 }
 \examples{
 # You have to authenticate with Twitter's API first. For more in this visit
-# TwitteR documentation.
-setup_twitter_oauth(consumer_key = "1234",
-                    consumer_secret = "1234",
-                    access_token = "1234",
-                    access_secret = "1234")
+# rtweet documentation.
+rtweet::create_token(app = "R_app",
+                     consumer_key = "1234",
+                     consumer_secret = "1234",
+                     access_token = "1234",
+                     access_secret = "1234")
 
 # The BBC World news Twitter feed is scraped and stored in the user's home
 # folder in the directory "temp" as "bbc_world.rds". If the file does not

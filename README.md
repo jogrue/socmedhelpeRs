@@ -1,7 +1,7 @@
 # RfacebookHelperFunctions
 This is an R package with functions to retrieve updates from Facebook pages
-with [Rfacebook](https://github.com/pablobarbera/Rfacebook) and from Twitter
-feeds with [TwitteR](https://github.com/geoffjentry/twitteR).
+with [Rfacebook](https://github.com/pablobarbera/Rfacebook/Rfacebook) and from
+Twitter feeds with [rtweet](https://github.com/mkearney/rtweet).
 
 ATTENTION: Facebook does not work anymore for me. Because of Facebook's API
 changes you now need a reviewed app.
@@ -11,13 +11,14 @@ This package can be installed from within R using
 
 
 ## Install
+
 ```R
 library(devtools)
 devtools::install_github("jogrue/RfacebookHelperFunctions")
 
 # I also recommend updating these packages.
 devtools::install_github("pablobarbera/Rfacebook/Rfacebook")
-devtools::install_github("geoffjentry/twitteR")
+devtools::install_github("mkearney/rtweet")
 devtools::install_github("r-lib/httr")
 ```
 
@@ -27,21 +28,27 @@ devtools::install_github("r-lib/httr")
 
 ```R
 
-# You have to authenticate with Twitter's API first. For more on this visit
-# TwitteR documentation.
-setup_twitter_oauth(consumer_key = "1234",
-                    consumer_secret = "1234",
-                    access_token = "1234",
-                    access_secret = "1234")
+# Twitter -----------------------------------------------------------------
+
+# You have to authenticate with Twitter's API first. For more in this visit
+# rtweet documentation.
+rtweet::create_token(app = "R_app",
+                     consumer_key = "1234",
+                     consumer_secret = "1234",
+                     access_token = "1234",
+                     access_secret = "1234")
 
 # A character vector is created
 my_users <- c(cnn = "CNN",
               bbc_world = "BBCWorld")
-              
+
 # CNN's and BBC's Twitter walls are updated and the results are stored in
 # the user's home directory in the folder "temp". They are named cnn.rds and
 # bbc_world.rds. If they do not already exist, both data sets are created.
 update_twitter_users(users = my_users, datadir = "~/temp")
+
+
+# Facebook ----------------------------------------------------------------
 
 ### Facebook stopped working if you do not have an app that has been reviewed
 ### by Facebook.

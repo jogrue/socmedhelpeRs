@@ -5,16 +5,21 @@
 \title{Update or get tweets from a Twitter wall}
 \usage{
 update_twitter_user(user, datafile, n = 100, token = NULL,
-  debug = FALSE)
+  max_repeats = 100, debug = FALSE)
 }
 \arguments{
-\item{user}{A twitter user name.}
+\item{user}{A twitter user name or ID.}
 
 \item{datafile}{The full path to an RDS data file.}
 
 \item{n}{The number of tweets to scrape from the wall, defaults to 100.}
 
 \item{token}{Provide a token, defaults to NULL.}
+
+\item{max_repeats}{The number of repeated calls to scrape data backwards. If
+go_back is TRUE, there will be repeated calls to go back in time (each call
+gets the number of posts in n_posts). The backward scraping will stop after
+max_repeats is reached. Defaults to 100.}
 
 \item{debug}{Show more messages during the updating process, default is
 FALSE.}

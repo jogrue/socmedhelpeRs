@@ -4,11 +4,12 @@
 \alias{update_page}
 \title{Update or get posts from a Facebook page}
 \usage{
-update_page(pagename, token, datafile, go_back = TRUE, n_posts = 100,
-  feed = FALSE, reactions = FALSE)
+update_page(page, token, datafile, go_back = TRUE, n_posts = 100,
+  feed = FALSE, reactions = FALSE, max_repeats = 100,
+  debug = FALSE)
 }
 \arguments{
-\item{pagename}{A page name.}
+\item{page}{A page name or ID.}
 
 \item{token}{Either a temporary access token created at
 https://developers.facebook.com/tools/explorer or the OAuth token created
@@ -26,6 +27,13 @@ were made by others (not only the admin of the page).}
 
 \item{reactions}{If TRUE, will add variables to the data frame with the total
 count of reactions: love, haha, wow, sad, angry.}
+
+\item{max_repeats}{The number of repeated calls to scrape data backwards. If
+go_back is TRUE, there will be repeated calls to go back in time (each call
+gets the number of posts in n_posts). The backward scraping will stop after
+max_repeats is reached. Defaults to 100.}
+
+\item{debug}{If TRUE, more information will be printed.}
 }
 \value{
 TRUE if it ran through.

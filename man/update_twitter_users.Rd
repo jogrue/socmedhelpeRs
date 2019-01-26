@@ -5,7 +5,7 @@
 \title{Update multiple Twitter users' timelines}
 \usage{
 update_twitter_users(users, datadir = "./raw-data", n = 100,
-  token = NULL, debug = FALSE)
+  token = NULL, max_repeats = 100, debug = FALSE)
 }
 \arguments{
 \item{users}{A named character vector. Names are the data file names,
@@ -16,6 +16,11 @@ characters are the Twitter user names that will be updated (see example).}
 \item{n}{The number of posts to scrape from each page, defaults to 100.}
 
 \item{token}{Provide a token, defaults to NULL.}
+
+\item{max_repeats}{The number of repeated calls to scrape data backwards. If
+go_back is TRUE, there will be repeated calls to go back in time (each call
+gets the number of posts in n_posts). The backward scraping will stop after
+max_repeats is reached. Defaults to 100.}
 
 \item{debug}{Show more messages during the updating process, default is
 FALSE.}

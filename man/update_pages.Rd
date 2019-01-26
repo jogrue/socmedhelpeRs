@@ -5,7 +5,8 @@
 \title{Update multiple Facebook pages}
 \usage{
 update_pages(pages = NULL, token = NULL, datadir = "./data",
-  go_back = TRUE, n_posts = 100, feed = FALSE, reactions = FALSE)
+  go_back = TRUE, n_posts = 100, feed = FALSE, reactions = FALSE,
+  max_repeats = 100, debug = FALSE)
 }
 \arguments{
 \item{pages}{A named character vector. Names are the data file names,
@@ -27,6 +28,13 @@ were made by others (not only the admin of the page).}
 
 \item{reactions}{If TRUE, will add variables to the data frame with the total
 count of reactions: love, haha, wow, sad, angry.}
+
+\item{max_repeats}{The number of repeated calls to scrape data backwards. If
+go_back is TRUE, there will be repeated calls to go back in time (each call
+gets the number of posts in n_posts). The backward scraping will stop after
+max_repeats is reached. Defaults to 100.}
+
+\item{debug}{If TRUE, more information will be printed.}
 }
 \value{
 TRUE for all pages the update went through.

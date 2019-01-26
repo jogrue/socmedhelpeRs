@@ -6,7 +6,7 @@
 #' than the ones already stored in the data.frame. Otherwise it creats a new
 #' data.frame.
 #'
-#' @param pagename A page name.
+#' @param page A page name or ID.
 #' @param token Either a temporary access token created at
 #'   https://developers.facebook.com/tools/explorer or the OAuth token created
 #'   with fbOAuth.
@@ -18,6 +18,11 @@
 #'   were made by others (not only the admin of the page).
 #' @param reactions If TRUE, will add variables to the data frame with the total
 #'   count of reactions: love, haha, wow, sad, angry.
+#' @param max_repeats The number of repeated calls to scrape data backwards. If
+#'   go_back is TRUE, there will be repeated calls to go back in time (each call
+#'   gets the number of posts in n_posts). The backward scraping will stop after
+#'   max_repeats is reached. Defaults to 100.
+#' @param debug If TRUE, more information will be printed.
 
 #'
 #' @return TRUE if it ran through.
@@ -38,110 +43,239 @@
 #' # The data set can be loaded with readRDS
 #' readRDS("~/temp/bbc.rds")
 #'
-update_page <- function(pagename, token, datafile, go_back = TRUE,
-                        n_posts = 100, feed = FALSE, reactions = FALSE) {
-  finished <- FALSE
-  if (is.null(token))
-  {
-    stop("No Facebook Auth token provided.")
+update_page <- function(page, token, datafile, go_back = TRUE,
+                        n_posts = 100, feed = FALSE, reactions = FALSE,
+                        max_repeats = 100, debug = FALSE) {
+  message(paste0("### Updating Facebook posts for ", page, "."))
+  existing_posts <- 0
+
+  # Load necessary libraries
+  if (!require(dplyr)) { stop("Package dplyr is missing.") }
+  if (!require(rtweet)) { stop("Package RFacebook is missing.") }
+  if (!require(digest)) { stop("Package digest is missing.")}
+
+  # Check parameters
+  if (missing(page)) {
+    stop("Parameter page is missing, please provide a Facebook page ID or name.")
   }
+  if (missing(datafile)) {
+    stop("Parameter datafile is missing, please provide a file path.")
+  }
+  if (missing(token)) {
+    stop("Parameter token is missing, please provide a Facebook auth token.")
+  }
+
+  # Run for the first time or get new posts until the previously newest post
+  # is reached (or initialize)
   if (file.exists(datafile)) {
-    page_data <- readRDS(datafile)
-    message(paste0(datafile," found. Updating data ..."))
-    # oldest post
-    oldest <- substr(min(page_data$created_time), 1, 10)
-    # newest post
-    newest <- substr(max(page_data$created_time), 1, 10)
-    # Issue 158: https://github.com/pablobarbera/Rfacebook/issues/158
-    #newest <- as.numeric(lubridate::ymd_hms(max(page_data$created_time)))
-    # Get newer posts
-    message(paste0("Try to fetch newer postings for ", pagename, "."))
-    update_data <- tryCatch(
+
+    message(paste0(datafile, " found. Updating data ..."))
+    old_data <- readRDS(datafile)
+    existing_posts <- nrow(old_data)
+    # # oldest post
+    # oldest <- substr(min(old_data$created_time), 1, 10)
+    # # newest post
+    # newest <- substr(max(old_data$created_time), 1, 10)
+    # # Issue 158: https://github.com/pablobarbera/Rfacebook/issues/158
+    # #newest <- as.numeric(lubridate::ymd_hms(max(page_data$created_time)))
+
+    data <- tryCatch(
       {
-        Rfacebook::getPage(pagename, token = token, n = n_posts,
-                           reactions = reactions, feed = feed,
-                           since = newest)
+        Rfacebook::getPage(page = page, token = token, n = n_posts,
+                           reactions = reactions, feed = feed)
       }, warning = function(w) {
-        warning(paste0("A warning occured during the first run: ", w))
+        message(paste0("A warning occured while calling getPage: ", w))
+        NULL # Return NULL
       }, error = function(e) {
-        warning(paste0("An error occured during the first run: ", e, "\n",
-                       "A second attempt was made."))
-        tryCatch(
-          {
-            Rfacebook::getPage(pagename, token = token, n = n_posts,
-                               reactions = reactions, feed = feed,
-                               since = newest)
-          }, warning = function(w) {
-            warning(paste0("A warning occured during the second run: ", w))
-          }, error = function(e) {
-            stop(paste0("An error occured during the second run:", e))
-          }
-        )
+        message(paste0("An error occured while calling getPage: ", e))
+        NULL # Return NULL
+      })
+    if (is.null(data)) { return(FALSE) } # Stop function and return FALSE
+    if (nrow(data) < 1) {
+      message("No posts downloadable.")
+      return(FALSE)
+    }
+
+    data <- arrange(data, dplyr::desc(created_time))
+
+    if (debug) {
+      message(paste0("DEBUG: Newest post from pre-existing data: ",
+                     max(old_data$created_time)))
+    }
+    if (debug) {
+      message(paste0("DEBUG: Oldest post from new data: ",
+                     min(data$created_time)))
+    }
+
+    # Get new data until newest date from pre-existing data is reached
+    while (min(data$created_time) > max(old_data$created_time)) {
+
+      message(paste0("Newer data found for ", page, ". Downloading ", n_posts,
+                     " new posts"))
+
+      oldest_in_data <- substr(min(data$created_time), 1, 10)
+      oldest_in_data <- lubridate::date(oldest_in_data)+1
+      oldest_in_data <- as.character(oldest_in_data)
+
+      if (debug) {
+        message(paste0("DEBUG: Oldest date for updating new posts: ", oldest_in_data))
       }
-    )
-    page_data <- rbind(page_data, update_data)
-    update_data <- NULL
-    if (go_back) {
-      # Get older postings
-      message(paste0("Trying to fetch older postings for ", pagename, "."))
-      update_data <- tryCatch(
+
+      new_data <- tryCatch(
         {
-          Rfacebook::getPage(pagename, token = token, n = n_posts,
+          Rfacebook::getPage(page, token = token, n = n_posts,
+                             reactions = reactions, feed = feed,
+                             until = oldest_in_data)
+        }, warning = function(w) {
+          message(paste0("A warning occured while calling getPage: ", w))
+          NULL # Return NULL
+        }, error = function(e) {
+          message(paste0("An error occured while calling getPage: ", e))
+          NULL # Return NULL
+        })
+      if (is.null(new_data)) { return(FALSE) } # Stop function and return FALSE
+      if (nrow(new_data) < 1) {
+        message("No new posts downloadable.")
+        return(FALSE)
+      }
+
+      data <- dplyr::bind_rows(new_data, data)
+      data <- dplyr::distinct(data, id, .keep_all = TRUE)
+      data <- dplyr::arrange(data, dplyr::desc(created_time))
+    }
+
+    # Combine new data with previously retrieved data
+    data <- dplyr::bind_rows(data, old_data)
+    data <- dplyr::distinct(data, id, .keep_all = TRUE)
+    data <- dplyr::arrange(data, dplyr::desc(created_time))
+
+    # else: Run getPage for the first time
+  } else {
+
+    message(paste0(datafile, " not found. First run for ", page, " ..."))
+    data <- tryCatch(
+      {
+        Rfacebook::getPage(page = page, token = token, n = n_posts,
+                           reactions = reactions, feed = feed)
+      }, warning = function(w) {
+        message(paste0("A warning occured while calling getPage: ", w))
+        NULL # Return NULL
+      }, error = function(e) {
+        message(paste0("An error occured while calling getPage: ", e))
+        NULL # Return NULL
+      })
+    if (is.null(data)) { return(FALSE) } # Stop function and return FALSE
+    if (nrow(data) < 1) {
+      message("No posts downloadable.")
+      return(FALSE)
+    }
+  }
+
+  # Get older posts
+  if (go_back) {
+    message("Try to get older data.")
+    repeat_counter <- 0
+    oldest_id <- data[nrow(data), c("id")]
+    hash <- ""
+
+    repeat {
+      # counter is increased by 1
+      repeat_counter <- repeat_counter + 1
+
+      # Date of oldest post in existing data
+      oldest <- substr(min(data$created_time), 1, 10)
+      oldest <- lubridate::date(oldest)+1
+      oldest <- as.character(oldest)
+      # Issue 158: https://github.com/pablobarbera/Rfacebook/issues/158
+      # oldest <- as.numeric(lubridate::ymd_hms(min(page_data$created_time)))
+
+      if (debug) {
+        message(paste0("DEBUG: Oldest post for getting older posts: ", oldest))
+      }
+
+      # Get older tweets
+      older_data <- tryCatch(
+        {
+          Rfacebook::getPage(page, token = token, n = n_posts,
                              reactions = reactions, feed = feed,
                              until = oldest)
         }, warning = function(w) {
-          warning(paste0("A warning occured during the first run: ", w))
+          message(paste0("A warning occured while calling getPage: ", w))
+          NULL # Return NULL
         }, error = function(e) {
-          warning(paste0("An error occured during the first run: ", e, "\n",
-                         "A second attempt was made."))
-          tryCatch(
-            {
-              Rfacebook::getPage(pagename, token = token, n = n_posts,
-                                 reactions = reactions, feed = feed,
-                                 until = oldest)
-            }, warning = function(w) {
-              warning(paste0("A warning occured during the second run: ", w))
-            }, error = function(e) {
-              stop(paste0("An error occured during the second run:", e))
-            }
-          )
-        }
-      )
-      page_data <- rbind(page_data, update_data)
-      update_data <- NULL
-    }
-  } else {
-    # Creates a new data set
-    message(paste0(datafile," not found. Updating data and creating new file ",
-                   "..."))
-    page_data <- tryCatch(
-      {
-        Rfacebook::getPage(pagename, token = token, n = n_posts,
-                           reactions = reactions, feed = feed)
-      }, warning = function(w) {
-        warning(paste0("A warning occured during the first run: ", w))
-      }, error = function(e) {
-        warning(paste0("An error occured during the first run: ", e, "\n",
-                       "A second attempt was made."))
-        tryCatch(
-          {
-            Rfacebook::getPage(pagename, token = token, n = n_posts,
-                               reactions = reactions, feed = feed)
-          }, warning = function(w) {
-            warning(paste0("A warning occured during the second run: ", w))
-          }, error = function(e) {
-            stop(paste0("An error occured during the second run:", e))
-          }
-        )
+          message(paste0("An error occured while calling getPage: ", e))
+          NULL # Return NULL
+        })
+      if (is.null(older_data)) { return(FALSE) } # Stop function and return FALSE
+      if (nrow(older_data) < 1) {
+        message("No older posts downloadable.")
+        break
       }
-    )
+      if (debug) {
+        message(paste0("DEBUG: Number of retrieved older posts: ",
+                       nrow(older_data)))
+      }
+
+      # oldest ID from existing data or previous run is set as previous
+      previous_oldest_id <- oldest_id
+      # oldest ID from this run
+      oldest_id <- older_data[nrow(older_data), c("id")]
+      # hash from previous run is set as previous
+      previous_hash <- hash
+      # hash from this run is computed
+      hash <- digest::digest(older_data, algo = "md5")
+
+      # Debug messages
+      if (debug) {
+        message(paste0("DEBUG: Loop for getting older data ran for ",
+                       repeat_counter, " time(s)."))
+        message(paste0("DEBUG: Previously oldest ID is ", previous_oldest_id,
+                       "."))
+        message(paste0("DEBUG: Previously oldest post is from ",
+                       min(data$created_time), "."))
+        message(paste0("DEBUG: Now downloaded oldest ID is ", oldest_id, "."))
+        message(paste0("DEBUG: Now downloaded oldest post is from ",
+                       min(older_data$created_time), "."))
+      }
+
+      # No more older tweets returned: break loop
+      if (oldest_id == previous_oldest_id) {
+        message(paste0("Oldest post downloaded for ", page, " is from ",
+                       min(older_data$created_time), "."))
+        break
+      }
+
+      # Check if retrieved data did not change after last loop
+      if (hash == previous_hash)
+      {
+        message(paste0("Loop produced the same result twice. Emergency break!"))
+        break
+      }
+
+      message(paste0("There is still older data. Adding up to ", n_posts,
+                     " old posts"))
+
+      # Combine older data with existing data
+      data <- dplyr::bind_rows(data, older_data)
+      data <- dplyr::distinct(data, id, .keep_all = TRUE)
+      data <- dplyr::arrange(data, dplyr::desc(created_time))
+
+      # Break if max_repeats are reached
+      if (repeat_counter >= max_repeats) {
+        message("Loop ran for ", repeat_counter,
+                " time(s). Max. number of repeats has been reached!")
+        break
+      }
+    }
   }
-  page_data <- dplyr::arrange(page_data, dplyr::desc(created_time))
-  page_data <- dplyr::distinct(page_data, id, .keep_all = TRUE)
-  saveRDS(page_data, file = datafile)
-  finished <- TRUE
-  return(finished)
+  # Save updated data
+  added_posts <- nrow(data) - existing_posts
+  message(paste0(added_posts, " posts downloaded for ", page, "."))
+  message(paste0("### Saving retrieved data for ", page, "."))
+  saveRDS(data, file = datafile)
+  return(TRUE)
 }
+
 
 #' Update multiple Facebook pages
 #'
@@ -166,7 +300,11 @@ update_page <- function(pagename, token, datafile, go_back = TRUE,
 #'   were made by others (not only the admin of the page).
 #' @param reactions If TRUE, will add variables to the data frame with the total
 #'   count of reactions: love, haha, wow, sad, angry.
-
+#' @param max_repeats The number of repeated calls to scrape data backwards. If
+#'   go_back is TRUE, there will be repeated calls to go back in time (each call
+#'   gets the number of posts in n_posts). The backward scraping will stop after
+#'   max_repeats is reached. Defaults to 100.
+#' @param debug If TRUE, more information will be printed.
 #' @return TRUE for all pages the update went through.
 #'
 #' @export
@@ -187,7 +325,7 @@ update_page <- function(pagename, token, datafile, go_back = TRUE,
 #' update_pages(pages = my_pages, token = fb_outh, datadir = "~/temp")
 update_pages <- function(pages = NULL, token = NULL, datadir = "./data",
                          go_back = TRUE, n_posts = 100, feed = FALSE,
-                         reactions = FALSE) {
+                         reactions = FALSE, max_repeats = 100, debug = FALSE) {
   # Checking parameters
   finished <- FALSE
   if (is.null(pages)) {
@@ -207,6 +345,7 @@ update_pages <- function(pages = NULL, token = NULL, datadir = "./data",
   datafiles <- file.path(datadir, paste0(datafiles, ".rds"))
   # Run update for every page
   finished <- purrr::map2(pages, datafiles, update_page,
-                     token = token, n_posts = n_posts, go_back = go_back)
+                          token = token, n_posts = n_posts, go_back = go_back,
+                          max_repeats = max_repeats, debug = debug)
   return(finished)
 }

@@ -6,10 +6,14 @@
 #' tweets than the ones already stored in the data.frame. Otherwise it creats a
 #' new data.frame.
 #'
-#' @param user A twitter user name.
+#' @param user A twitter user name or ID.
 #' @param datafile The full path to an RDS data file.
 #' @param n The number of tweets to scrape from the wall, defaults to 100.
 #' @param token Provide a token, defaults to NULL.
+#' @param max_repeats The number of repeated calls to scrape data backwards. If
+#'   go_back is TRUE, there will be repeated calls to go back in time (each call
+#'   gets the number of posts in n_posts). The backward scraping will stop after
+#'   max_repeats is reached. Defaults to 100.
 #' @param debug Show more messages during the updating process, default is
 #' FALSE.
 #'
@@ -35,16 +39,17 @@
 #' # The data set can be loaded with readRDS
 #' readRDS("~/temp/bbc_world.rds")
 update_twitter_user <- function(user, datafile, n = 100, token = NULL,
-                                debug = FALSE) {
+                                max_repeats = 100, debug = FALSE) {
   message(paste0("### Updating Twitter timeline for ", user, "."))
   existing_tweets <- 0
   # Load necessary libraries
   if (!require(dplyr)) { stop("Package dplyr is missing.") }
   if (!require(rtweet)) { stop("Package rtweet is missing.") }
+  if (!require(digest)) { stop("Package digest is missing.")}
 
   # Check parameters
   if (missing(user)) {
-    stop("Parameter user is missing, please provide a Twitter user name.")
+    stop("Parameter user is missing, please provide a Twitter user ID or name.")
   }
   if (missing(datafile)) {
     stop("Parameter datafile is missing, please provide a file path.")
@@ -70,6 +75,10 @@ update_twitter_user <- function(user, datafile, n = 100, token = NULL,
         NULL # Return NULL
       })
     if (is.null(data)) { return(FALSE) } # Stop function and return FALSE
+    if (nrow(data) < 1) {
+      message("No tweets downloadable.")
+      return(FALSE)
+    }
 
     data <- arrange(data, dplyr::desc(created_at))
 
@@ -108,6 +117,10 @@ update_twitter_user <- function(user, datafile, n = 100, token = NULL,
           NULL # Return NULL
         })
       if (is.null(new_data)) { return(FALSE) } # Stop function and return FALSE
+      if (nrow(data) < 1) {
+        message("No new tweets downloadable.")
+        return(FALSE)
+      }
 
       data <- dplyr::bind_rows(new_data, data)
       data <- dplyr::distinct(data, status_id, .keep_all = TRUE)
@@ -122,7 +135,7 @@ update_twitter_user <- function(user, datafile, n = 100, token = NULL,
     # else: Run get_timeline for the first time
   } else {
 
-    message(paste0("No data file found. First run for ", user, " ..."))
+    message(paste0(datafile, " not found. First run for ", user, " ..."))
     data <- tryCatch(
       {
         rtweet::get_timeline(user = user, n = n, home = FALSE,
@@ -135,13 +148,24 @@ update_twitter_user <- function(user, datafile, n = 100, token = NULL,
         NULL # Return NULL
       })
     if (is.null(data)) { return(FALSE) } # Stop function and return FALSE
-
+    if (nrow(data) < 1) {
+      message("No tweets downloadable.")
+      return(FALSE)
+    }
   }
 
   # Get older tweets
+  message("Try to get older data.")
+  repeat_counter <- 0
+  hash <- ""
+
   repeat {
+    # counter is increased by 1
+    repeat_counter <- repeat_counter + 1
+
     # ID of oldest tweet in existing data
     max_id <- data[nrow(data), ]$status_id
+
     if (debug) {
       message(paste0("DEBUG: max_id for getting older tweets: ", max_id))
     }
@@ -162,22 +186,60 @@ update_twitter_user <- function(user, datafile, n = 100, token = NULL,
         NULL # Return NULL
       })
     if (is.null(older_data)) { return(FALSE) } # Stop function and return FALSE
+    if (nrow(older_data) < 1) {
+      message("No old tweets downloadable.")
+      return(FALSE)
+    }
 
     if (debug) {
       message(paste0("DEBUG: Number of retrieved older tweets: ",
                      nrow(older_data)))
     }
 
-    # No more older tweets returned: break loop
+    # hash from previous run is set as previous
+    previous_hash <- hash
+    # hash from this run is computed
+    hash <- digest::digest(older_data, algo = "md5")
+
+    # Debug messages
+    if (debug) {
+      message(paste0("DEBUG: Loop for getting older data ran for ",
+                     repeat_counter, " time(s)."))
+      message(paste0("DEBUG: Previously oldest ID is ",
+                     data[nrow(data), c("status_id")],
+                     "."))
+      message(paste0("DEBUG: Previously oldest post is from ",
+                     min(data$created_time), "."))
+      message(paste0("DEBUG: Now downloaded oldest ID is ",
+                     older_data[nrow(older_data), c("status_id")], "."))
+      message(paste0("DEBUG: Now downloaded oldest post is from ",
+                     min(older_data$created_time), "."))
+    }
+
     if (nrow(older_data) <= 1) {
       break
     }
+    # Check if retrieved data did not change after last loop
+    if (hash == previous_hash)
+    {
+      message(paste0("Loop produced the same result twice. Emergency break!"))
+      break
+    }
+
     message(paste0("There is still older data. Adding up to ", n,
                    " old tweets."))
     # Combine older data with existing data
     data <- dplyr::bind_rows(data, older_data)
     data <- dplyr::distinct(data, status_id, .keep_all = TRUE)
     data <- dplyr::arrange(data, dplyr::desc(created_at))
+
+    # Break if max_repeats are reached
+    if (repeat_counter >= max_repeats) {
+      message("Loop ran for ", repeat_counter,
+              " time(s). Max. number of repeats has been reached!")
+      break
+    }
+
   }
 
   # Save updated data
@@ -205,6 +267,10 @@ update_twitter_user <- function(user, datafile, n = 100, token = NULL,
 #' @param datadir A directory containing the stored data sets (as "name.rds").
 #' @param n The number of posts to scrape from each page, defaults to 100.
 #' @param token Provide a token, defaults to NULL.
+#' @param max_repeats The number of repeated calls to scrape data backwards. If
+#'   go_back is TRUE, there will be repeated calls to go back in time (each call
+#'   gets the number of posts in n_posts). The backward scraping will stop after
+#'   max_repeats is reached. Defaults to 100.
 #' @param debug Show more messages during the updating process, default is
 #' FALSE.
 #'
@@ -230,7 +296,8 @@ update_twitter_user <- function(user, datafile, n = 100, token = NULL,
 #' # bbc_world.rds. If they do not already exist, both data sets are created.
 #' update_twitter_users(users = my_users, datadir = "~/temp")
 update_twitter_users <- function(users, datadir = "./raw-data", n = 100,
-                                 token = NULL, debug = FALSE) {
+                                 token = NULL, max_repeats = 100,
+                                 debug = FALSE) {
   if (!require(purrr)) {stop("Package purrr is not installed.")}
 
   # Checking parameters
@@ -252,6 +319,7 @@ update_twitter_users <- function(users, datadir = "./raw-data", n = 100,
   datafiles <- file.path(datadir, paste0(datafiles, ".rds"))
   # Run update for every account
   finished <- purrr::map2(users, datafiles, update_twitter_user,
-                          n = n, token = token, debug = debug)
+                          n = n, token = token, max_repeats = max_repeats,
+                          debug = debug)
   return(finished)
 }

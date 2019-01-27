@@ -209,15 +209,20 @@ update_twitter_user <- function(user, datafile, n = 100, token = NULL,
                      "."))
       message(paste0("DEBUG: Previously oldest post is from ",
                      min(data$created_time), "."))
-      message(paste0("DEBUG: Now downloaded oldest ID is ",
-                     older_data[nrow(older_data), c("status_id")], "."))
-      message(paste0("DEBUG: Now downloaded oldest post is from ",
-                     min(older_data$created_time), "."))
     }
 
     if (nrow(older_data) <= 1) {
       break
     }
+
+    # Debug messages
+    if (debug) {
+         message(paste0("DEBUG: Now downloaded oldest ID is ",
+                     older_data[nrow(older_data), c("status_id")], "."))
+      message(paste0("DEBUG: Now downloaded oldest post is from ",
+                     min(older_data$created_time), "."))
+    }
+
     # Check if retrieved data did not change after last loop
     if (hash == previous_hash)
     {

@@ -188,7 +188,6 @@ update_twitter_user <- function(user, datafile, n = 100, token = NULL,
     if (is.null(older_data)) { return(FALSE) } # Stop function and return FALSE
     if (nrow(older_data) < 1) {
       message("No old tweets downloadable.")
-      return(FALSE)
     }
 
     if (debug) {

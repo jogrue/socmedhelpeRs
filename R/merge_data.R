@@ -107,11 +107,11 @@ merge_data <- function(old_folder, new_folder, output_folder,
     if (!is.null(old_data) & !is.null(new_data)) {
       # Combine newer data with older data
       message(paste0("For ", i, " new and old data exist. Data is merged and ",
-                     "saved to to the directory for merged files."))
+                     "saved to the directory for merged files."))
       merged_data <- dplyr::bind_rows(old_data, new_data)
       merged_data <- merged_data[!duplicated(merged_data[, id]), ]
       merged_data <- dplyr::arrange(merged_data,
-                                    dplyr::desc(merged_data[, sort]))
+                                    dplyr::desc(dplyr::pull(merged_data, sort)))
       saveRDS(object = merged_data, file = output_file)
       results[results$file == i, ]$result <-
         paste0("Data merged, ",

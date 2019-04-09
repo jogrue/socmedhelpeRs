@@ -30,7 +30,7 @@ devtools::install_github("r-lib/httr")
 
 # Twitter -----------------------------------------------------------------
 
-# You have to authenticate with Twitter's API first. For more in this visit
+# You have to authenticate with Twitter's API first. For more on this visit
 # rtweet documentation.
 rtweet::create_token(app = "R_app",
                      consumer_key = "1234",

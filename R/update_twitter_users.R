@@ -40,8 +40,10 @@
 #' readRDS("~/temp/bbc_world.rds")
 update_twitter_user <- function(user, datafile, n = 100, token = NULL,
                                 max_repeats = 100, debug = FALSE) {
+
   message(paste0("### Updating Twitter timeline for ", user, "."))
   existing_tweets <- 0
+
   # Load necessary libraries
   if (!require(dplyr)) { stop("Package dplyr is missing.") }
   if (!require(rtweet)) { stop("Package rtweet is missing.") }
@@ -53,6 +55,9 @@ update_twitter_user <- function(user, datafile, n = 100, token = NULL,
   }
   if (missing(datafile)) {
     stop("Parameter datafile is missing, please provide a file path.")
+  }
+  if (missing(token)) {
+    message("No Twitter auth token provided. This function should still work if you have previously created an rtweet token.")
   }
 
   # Run for the first time or get new tweets until the previously newest tweet
@@ -67,9 +72,9 @@ update_twitter_user <- function(user, datafile, n = 100, token = NULL,
       {
         rtweet::get_timeline(user = user, n = n, home = FALSE,
                              parse = TRUE, check = TRUE, token = token)
-      }, warning = function(w) {
-        message(paste0("A warning occured while calling get_timeline: ", w))
-        NULL # Return NULL
+      # }, warning = function(w) {
+      #   message(paste0("A warning occured while calling get_timeline: ", w))
+      #   NULL # Return NULL
       }, error = function(e) {
         message(paste0("An error occured while calling get_timeline: ", e))
         NULL # Return NULL
@@ -91,6 +96,9 @@ update_twitter_user <- function(user, datafile, n = 100, token = NULL,
                      min(data$created_at)))
     }
 
+    # Hash for data downloaded in first run.
+    hash <- digest::digest(data, algo = "md5")
+    repeat_counter <- 0
     # Get new data until newest date from pre-existing data is reached
     while (min(data$created_at) > max(old_data$created_at)) {
 
@@ -109,17 +117,48 @@ update_twitter_user <- function(user, datafile, n = 100, token = NULL,
                                home = FALSE,
                                parse = TRUE, check = TRUE,
                                token = token)
-        }, warning = function(w) {
-          message(paste0("A warning occured while calling get_timeline: ", w))
-          NULL # Return NULL
+        # }, warning = function(w) {
+        #   message(paste0("A warning occured while calling get_timeline: ", w))
+        #   NULL # Return NULL
         }, error = function(e) {
           message(paste0("An error occured while calling get_timeline: ", e))
           NULL # Return NULL
         })
-      if (is.null(new_data)) { return(FALSE) } # Stop function and return FALSE
-      if (nrow(data) < 1) {
-        message("No new tweets downloadable.")
-        return(FALSE)
+      if (is.null(new_data)) {
+        message("No downloadable data found while trying to get more new data.")
+        break
+      } # Stop loop
+      if (nrow(new_data) < 1) {
+        message("No more new tweets downloadable.")
+        break
+      }
+
+      repeat_counter <- repeat_counter + 1
+      # Debug messages
+      if (debug) {
+        message(paste0("DEBUG: Loop for getting more new data ran for ",
+                       repeat_counter, " time(s)."))
+        message(paste0("DEBUG: Previously oldest ID is ",
+                       data[nrow(data), c("status_id")],
+                       "."))
+        message(paste0("DEBUG: Previously oldest Tweet is from ",
+                       min(data$created_at), "."))
+        message(paste0("DEBUG: Now downloaded oldest ID is ",
+                       new_data[nrow(new_data), c("status_id")], "."))
+        message(paste0("DEBUG: Now downloaded oldest Tweet is from ",
+                       min(new_data$created_at), "."))
+      }
+
+      # hash from previous run is set as previous
+      previous_hash <- hash
+      # hash from this run is computed
+      hash <- digest::digest(new_data, algo = "md5")
+
+      # Check if retrieved data did not change after last loop
+      if (hash == previous_hash)
+      {
+        message(paste0("Loop to get all newer data produced the same result twice. The previously newest Tweet is therfore not reachable (likely because it was deleted). Emergency break!"))
+        break
       }
 
       data <- dplyr::bind_rows(new_data, data)
@@ -140,9 +179,9 @@ update_twitter_user <- function(user, datafile, n = 100, token = NULL,
       {
         rtweet::get_timeline(user = user, n = n, home = FALSE,
                              parse = TRUE, check = TRUE, token = token)
-      }, warning = function(w) {
-        message(paste0("A warning occured while calling get_timeline: ", w))
-        NULL # Return NULL
+      # }, warning = function(w) {
+      #   message(paste0("A warning occured while calling get_timeline: ", w))
+      #   NULL # Return NULL
       }, error = function(e) {
         message(paste0("An error occured while calling get_timeline: ", e))
         NULL # Return NULL
@@ -178,17 +217,20 @@ update_twitter_user <- function(user, datafile, n = 100, token = NULL,
                              home = FALSE,
                              parse = TRUE, check = TRUE,
                              token = token)
-      }, warning = function(w) {
-        message(paste0("A warning occured while calling get_timeline: ", w))
-        NULL # Return NULL
+      # }, warning = function(w) {
+      #   message(paste0("A warning occured while calling get_timeline: ", w))
+      #   NULL # Return NULL
       }, error = function(e) {
         message(paste0("An error occured while calling get_timeline: ", e))
         NULL # Return NULL
       })
-    if (is.null(older_data)) { return(FALSE) } # Stop function and return FALSE
+    if (is.null(older_data)) {
+      # break loop if an error occurred
+      break
+    }
     if (nrow(older_data) < 1) {
       message("No old tweets downloadable.")
-      return(FALSE)
+      break
     }
 
     if (debug) {
@@ -208,12 +250,12 @@ update_twitter_user <- function(user, datafile, n = 100, token = NULL,
       message(paste0("DEBUG: Previously oldest ID is ",
                      data[nrow(data), c("status_id")],
                      "."))
-      message(paste0("DEBUG: Previously oldest post is from ",
-                     min(data$created_time), "."))
+      message(paste0("DEBUG: Previously oldest Tweet is from ",
+                     min(data$created_at), "."))
       message(paste0("DEBUG: Now downloaded oldest ID is ",
                      older_data[nrow(older_data), c("status_id")], "."))
-      message(paste0("DEBUG: Now downloaded oldest post is from ",
-                     min(older_data$created_time), "."))
+      message(paste0("DEBUG: Now downloaded oldest ID is from ",
+                     min(older_data$created_at), "."))
     }
 
     if (nrow(older_data) <= 1) {
@@ -239,7 +281,6 @@ update_twitter_user <- function(user, datafile, n = 100, token = NULL,
               " time(s). Max. number of repeats has been reached!")
       break
     }
-
   }
 
   # Save updated data

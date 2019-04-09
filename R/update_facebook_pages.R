@@ -46,6 +46,7 @@
 update_page <- function(page, token, datafile, go_back = TRUE,
                         n_posts = 100, feed = FALSE, reactions = FALSE,
                         max_repeats = 100, debug = FALSE) {
+
   message(paste0("### Updating Facebook posts for ", page, "."))
   existing_posts <- 0
 
@@ -72,6 +73,7 @@ update_page <- function(page, token, datafile, go_back = TRUE,
     message(paste0(datafile, " found. Updating data ..."))
     old_data <- readRDS(datafile)
     existing_posts <- nrow(old_data)
+
     # # oldest post
     # oldest <- substr(min(old_data$created_time), 1, 10)
     # # newest post
@@ -83,9 +85,9 @@ update_page <- function(page, token, datafile, go_back = TRUE,
       {
         Rfacebook::getPage(page = page, token = token, n = n_posts,
                            reactions = reactions, feed = feed)
-      }, warning = function(w) {
-        message(paste0("A warning occured while calling getPage: ", w))
-        NULL # Return NULL
+      # }, warning = function(w) {
+      #   message(paste0("A warning occured while calling getPage: ", w))
+      #   NULL # Return NULL
       }, error = function(e) {
         message(paste0("An error occured while calling getPage: ", e))
         NULL # Return NULL
@@ -107,14 +109,17 @@ update_page <- function(page, token, datafile, go_back = TRUE,
                      min(data$created_time)))
     }
 
+    # Hash for data downloaded in first run.
+    hash <- digest::digest(data, algo = "md5")
     # Get new data until newest date from pre-existing data is reached
+    repeat_counter <- 0
     while (min(data$created_time) > max(old_data$created_time)) {
 
       message(paste0("Newer data found for ", page, ". Downloading ", n_posts,
-                     " new posts"))
+                     " new posts."))
 
       oldest_in_data <- substr(min(data$created_time), 1, 10)
-      oldest_in_data <- lubridate::date(oldest_in_data)+1
+      oldest_in_data <- lubridate::date(oldest_in_data) + 1
       oldest_in_data <- as.character(oldest_in_data)
 
       if (debug) {
@@ -126,17 +131,48 @@ update_page <- function(page, token, datafile, go_back = TRUE,
           Rfacebook::getPage(page, token = token, n = n_posts,
                              reactions = reactions, feed = feed,
                              until = oldest_in_data)
-        }, warning = function(w) {
-          message(paste0("A warning occured while calling getPage: ", w))
-          NULL # Return NULL
+        # }, warning = function(w) {
+        #   message(paste0("A warning occured while calling getPage: ", w))
+        #   NULL # Return NULL
         }, error = function(e) {
           message(paste0("An error occured while calling getPage: ", e))
           NULL # Return NULL
         })
-      if (is.null(new_data)) { return(FALSE) } # Stop function and return FALSE
+      if (is.null(new_data)) {
+        message("No downloadable data found while trying to get more new data.")
+        break
+      } # Stop loop
       if (nrow(new_data) < 1) {
-        message("No new posts downloadable.")
-        return(FALSE)
+        message("No more new posts downloadable.")
+        break
+      }
+
+      repeat_counter <- repeat_counter + 1
+      # Debug messages
+      if (debug) {
+        message(paste0("DEBUG: Loop for getting older data ran for ",
+                       repeat_counter, " time(s)."))
+        message(paste0("DEBUG: Previously oldest ID is ",
+                       data[nrow(data), c("id")],
+                       "."))
+        message(paste0("DEBUG: Previously oldest post is from ",
+                       min(data$created_time), "."))
+        message(paste0("DEBUG: Now downloaded oldest ID is ",
+                       new_data[nrow(new_data), c("id")], "."))
+        message(paste0("DEBUG: Now downloaded oldest post is from ",
+                       min(new_data$created_time), "."))
+      }
+
+      # hash from previous run is set as previous
+      previous_hash <- hash
+      # hash from this run is computed
+      hash <- digest::digest(new_data, algo = "md5")
+
+      # Check if retrieved data did not change after last loop
+      if (hash == previous_hash)
+      {
+        message(paste0("Loop to get all newer data produced the same result twice. The previously newest Tweet is therfore not reachable (likely because it was deleted). Emergency break!"))
+        break
       }
 
       data <- dplyr::bind_rows(new_data, data)
@@ -157,9 +193,9 @@ update_page <- function(page, token, datafile, go_back = TRUE,
       {
         Rfacebook::getPage(page = page, token = token, n = n_posts,
                            reactions = reactions, feed = feed)
-      }, warning = function(w) {
-        message(paste0("A warning occured while calling getPage: ", w))
-        NULL # Return NULL
+      # }, warning = function(w) {
+      #   message(paste0("A warning occured while calling getPage: ", w))
+      #   NULL # Return NULL
       }, error = function(e) {
         message(paste0("An error occured while calling getPage: ", e))
         NULL # Return NULL
@@ -199,18 +235,22 @@ update_page <- function(page, token, datafile, go_back = TRUE,
           Rfacebook::getPage(page, token = token, n = n_posts,
                              reactions = reactions, feed = feed,
                              until = oldest)
-        }, warning = function(w) {
-          message(paste0("A warning occured while calling getPage: ", w))
-          NULL # Return NULL
+        # }, warning = function(w) {
+        #   message(paste0("A warning occured while calling getPage: ", w))
+        #   NULL # Return NULL
         }, error = function(e) {
           message(paste0("An error occured while calling getPage: ", e))
           NULL # Return NULL
         })
-      if (is.null(older_data)) { return(FALSE) } # Stop function and return FALSE
+      if (is.null(older_data)) {
+        # break loop if an error occurred
+        break
+      }
       if (nrow(older_data) < 1) {
         message("No older posts downloadable.")
         break
       }
+
       if (debug) {
         message(paste0("DEBUG: Number of retrieved older posts: ",
                        nrow(older_data)))

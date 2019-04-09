@@ -261,6 +261,7 @@ update_twitter_user <- function(user, datafile, n = 100, token = NULL,
     if (nrow(older_data) <= 1) {
       break
     }
+
     # Check if retrieved data did not change after last loop
     if (hash == previous_hash)
     {

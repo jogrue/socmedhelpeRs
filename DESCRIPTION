@@ -5,7 +5,6 @@ Authors@R: person("Johann", "Gruendl", email = "mail@johanngruendl.at",
                   role = c("aut", "cre"))
 Description: Some functions I use to get updates from Facebook pages with
              Rfacebook and from Twitter with rtweet
-Depends: R (>= 3.4.2)
 Imports:
     purrr,
     lubridate,

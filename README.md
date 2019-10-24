@@ -1,10 +1,11 @@
-# RfacebookHelperFunctions
+# socmedhelpeRs
 This is an R package with functions to retrieve updates from Facebook pages
 with [Rfacebook](https://github.com/pablobarbera/Rfacebook/Rfacebook) and from
 Twitter feeds with [rtweet](https://github.com/mkearney/rtweet).
 
-ATTENTION: Facebook does not work anymore for me. Because of Facebook's API
-changes you now need a reviewed app.
+ATTENTION: Facebook stopped working for me. Because of Facebook's API changes
+you now need a reviewed app. Rfacebook and my functions to retrieve Facebook
+data with it are not maintained anymore.
 
 This package can be installed from within R using
 [devtools](https://github.com/hadley/devtools):
@@ -14,7 +15,7 @@ This package can be installed from within R using
 
 ```R
 library(devtools)
-devtools::install_github("jogrue/RfacebookHelperFunctions")
+devtools::install_github("jogrue/socmedhelpeRs")
 
 # I also recommend updating these packages.
 devtools::install_github("pablobarbera/Rfacebook/Rfacebook")
@@ -27,6 +28,8 @@ devtools::install_github("r-lib/httr")
 ## Usage
 
 ```R
+# Loading the package
+library("socmedhelpeRs")
 
 # Twitter -----------------------------------------------------------------
 
@@ -62,9 +65,6 @@ fb_oauth <- fbOAuth(app_id="123456789",
 # A character vector is created
 my_pages <- c(cnn = "cnn",
               bbc = "bbcnews")
-
-# Loading the package
-library("RfacebookHelperFunctions")
 
 # The two pages CNN and BBC news are updated and the results are stored in
 # the user's home directory in the folder "temp". They are named cnn.rds and

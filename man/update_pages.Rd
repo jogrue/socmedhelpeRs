@@ -51,9 +51,9 @@ data.frame. Otherwise it creats a new data.frame.
 \examples{
 # You have to authenticate with Facebook's API first. For more in this visit
 # Rfacebooks documentation.
-fb_oauth <- fbOAuth(app_id="123456789",
-                    app_secret="1A2B3C4D",
-                    extended_permissions = TRUE)
+fb_oauth <- Rfacebook::fbOAuth(app_id="123456789",
+                               app_secret="1A2B3C4D",
+                               extended_permissions = TRUE)
 
 # A character vector is created
 my_pages <- c(cnn = "cnn",

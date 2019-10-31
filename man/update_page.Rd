@@ -48,9 +48,9 @@ data.frame.
 \examples{
 # You have to authenticate with Facebook's API first. For more in this visit
 # Rfacebooks documentation.
-fb_oauth <- fbOAuth(app_id="123456789",
-                    app_secret="1A2B3C4D",
-                    extended_permissions = TRUE)
+fb_oauth <- Rfacebook::fbOAuth(app_id="123456789",
+                               app_secret="1A2B3C4D",
+                               extended_permissions = TRUE)
 
 # The BBC news page's posts are updated and stored in the user's home
 # folder in the directory "temp" as "bbc.rds". If the file does not already

@@ -15,12 +15,13 @@ This package can be installed from within R using
 
 ```R
 library(devtools)
-devtools::install_github("jogrue/socmedhelpeRs")
 
-# I also recommend updating these packages.
+# I recommend to install/update these dependencies from GitHub
 devtools::install_github("pablobarbera/Rfacebook/Rfacebook")
 devtools::install_github("mkearney/rtweet")
-devtools::install_github("r-lib/httr")
+
+# Install the socmedhelpeRs package from GitHub
+devtools::install_github("jogrue/socmedhelpeRs")
 ```
 
 

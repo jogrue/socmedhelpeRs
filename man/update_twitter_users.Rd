@@ -39,6 +39,7 @@ ones already stored in the data.frame. Otherwise it creates a new
 data.frame.
 }
 \examples{
+\dontrun{
 # You have to authenticate with Twitter's API first. For more in this visit
 # rtweet documentation.
 rtweet::create_token(app = "R_app",
@@ -55,4 +56,5 @@ my_users <- c(cnn = "CNN",
 # the user's home directory in the folder "temp". They are named cnn.rds and
 # bbc_world.rds. If they do not already exist, both data sets are created.
 update_twitter_users(users = my_users, datadir = "~/temp")
+}
 }

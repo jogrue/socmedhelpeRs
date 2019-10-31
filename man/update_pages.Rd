@@ -49,6 +49,7 @@ scrape newer (and older) posts than the ones already stored in the
 data.frame. Otherwise it creats a new data.frame.
 }
 \examples{
+\dontrun{
 # You have to authenticate with Facebook's API first. For more in this visit
 # Rfacebooks documentation.
 fb_oauth <- Rfacebook::fbOAuth(app_id="123456789",
@@ -62,4 +63,5 @@ my_pages <- c(cnn = "cnn",
 # the user's home directory in the folder "temp". They are named cnn.rds and
 # bbc.rds. If they do not already exist, both data sets are created.
 update_pages(pages = my_pages, token = fb_outh, datadir = "~/temp")
+}
 }

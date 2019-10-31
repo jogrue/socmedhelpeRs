@@ -18,10 +18,11 @@
 #' FALSE.
 #'
 #' @return TRUE if it ran through.
-#'
+#' @importFrom rlang .data
 #' @export
 #'
 #' @examples
+#' \dontrun{
 #' # You have to authenticate with Twitter's API first. For more in this visit
 #' # rtweet documentation.
 #' rtweet::create_token(app = "R_app",
@@ -38,16 +39,12 @@
 #'
 #' # The data set can be loaded with readRDS
 #' readRDS("~/temp/bbc_world.rds")
+#' }
 update_twitter_user <- function(user, datafile, n = 100, token = NULL,
                                 max_repeats = 100, debug = FALSE) {
 
   message(paste0("### Updating Twitter timeline for ", user, "."))
   existing_tweets <- 0
-
-  # Load necessary libraries
-  if (!require(dplyr)) { stop("Package dplyr is missing.") }
-  if (!require(rtweet)) { stop("Package rtweet is missing.") }
-  if (!require(digest)) { stop("Package digest is missing.")}
 
   # Check parameters
   if (missing(user)) {
@@ -85,7 +82,7 @@ update_twitter_user <- function(user, datafile, n = 100, token = NULL,
       return(FALSE)
     }
 
-    data <- arrange(data, dplyr::desc(created_at))
+    data <- dplyr::arrange(data, dplyr::desc(.data$created_at))
 
     if (debug) {
       message(paste0("DEBUG: Newest tweet from pre-existing data: ",
@@ -162,14 +159,14 @@ update_twitter_user <- function(user, datafile, n = 100, token = NULL,
       }
 
       data <- dplyr::bind_rows(new_data, data)
-      data <- dplyr::distinct(data, status_id, .keep_all = TRUE)
-      data <- dplyr::arrange(data, dplyr::desc(created_at))
+      data <- dplyr::distinct(data, .data$status_id, .keep_all = TRUE)
+      data <- dplyr::arrange(data, dplyr::desc(.data$created_at))
     }
 
     # Combine new data with previously retrieved data
     data <- dplyr::bind_rows(data, old_data)
-    data <- dplyr::distinct(data, status_id, .keep_all = TRUE)
-    data <- dplyr::arrange(data, dplyr::desc(created_at))
+    data <- dplyr::distinct(data, .data$status_id, .keep_all = TRUE)
+    data <- dplyr::arrange(data, dplyr::desc(.data$created_at))
 
     # else: Run get_timeline for the first time
   } else {
@@ -273,8 +270,8 @@ update_twitter_user <- function(user, datafile, n = 100, token = NULL,
                    " old tweets."))
     # Combine older data with existing data
     data <- dplyr::bind_rows(data, older_data)
-    data <- dplyr::distinct(data, status_id, .keep_all = TRUE)
-    data <- dplyr::arrange(data, dplyr::desc(created_at))
+    data <- dplyr::distinct(data, .data$status_id, .keep_all = TRUE)
+    data <- dplyr::arrange(data, dplyr::desc(.data$created_at))
 
     # Break if max_repeats are reached
     if (repeat_counter >= max_repeats) {
@@ -321,6 +318,7 @@ update_twitter_user <- function(user, datafile, n = 100, token = NULL,
 #' @export
 #'
 #' @examples
+#' \dontrun{
 #' # You have to authenticate with Twitter's API first. For more in this visit
 #' # rtweet documentation.
 #' rtweet::create_token(app = "R_app",
@@ -337,10 +335,10 @@ update_twitter_user <- function(user, datafile, n = 100, token = NULL,
 #' # the user's home directory in the folder "temp". They are named cnn.rds and
 #' # bbc_world.rds. If they do not already exist, both data sets are created.
 #' update_twitter_users(users = my_users, datadir = "~/temp")
+#' }
 update_twitter_users <- function(users, datadir = "./raw-data", n = 100,
                                  token = NULL, max_repeats = 100,
                                  debug = FALSE) {
-  if (!require(purrr)) {stop("Package purrr is not installed.")}
 
   # Checking parameters
   finished <- FALSE

@@ -18,8 +18,6 @@
 #' @export
 merge_data <- function(old_folder, new_folder, output_folder,
                        id = "id", sort = "created_time") {
-  if (!require(dplyr)) { stop("Package dplyr is missing.") }
-
   # Checking parameters
   if (is.null(old_folder) | is.null(new_folder) | is.null(output_folder)) {
     stop("All three folders have to be provided.")

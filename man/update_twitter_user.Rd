@@ -35,6 +35,7 @@ tweets than the ones already stored in the data.frame. Otherwise it creats a
 new data.frame.
 }
 \examples{
+\dontrun{
 # You have to authenticate with Twitter's API first. For more in this visit
 # rtweet documentation.
 rtweet::create_token(app = "R_app",
@@ -51,4 +52,5 @@ update_twitter_feed("BBCWorld", "~/temp/bbc_world.rds")
 
 # The data set can be loaded with readRDS
 readRDS("~/temp/bbc_world.rds")
+}
 }

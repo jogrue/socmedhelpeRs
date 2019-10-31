@@ -46,6 +46,7 @@ than the ones already stored in the data.frame. Otherwise it creats a new
 data.frame.
 }
 \examples{
+\dontrun{
 # You have to authenticate with Facebook's API first. For more in this visit
 # Rfacebooks documentation.
 fb_oauth <- Rfacebook::fbOAuth(app_id="123456789",
@@ -59,5 +60,5 @@ update_page("bbcnews", fb_oauth, "~/temp/bbc.rds")
 
 # The data set can be loaded with readRDS
 readRDS("~/temp/bbc.rds")
-
+}
 }

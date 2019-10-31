@@ -26,9 +26,11 @@
 
 #'
 #' @return TRUE if it ran through.
+#' @importFrom rlang .data
 #' @export
 #'
 #' @examples
+#' \dontrun{
 #' # You have to authenticate with Facebook's API first. For more in this visit
 #' # Rfacebooks documentation.
 #' fb_oauth <- Rfacebook::fbOAuth(app_id="123456789",
@@ -42,18 +44,13 @@
 #'
 #' # The data set can be loaded with readRDS
 #' readRDS("~/temp/bbc.rds")
-#'
+#' }
 update_page <- function(page, token, datafile, go_back = TRUE,
                         n_posts = 100, feed = FALSE, reactions = FALSE,
                         max_repeats = 100, debug = FALSE) {
 
   message(paste0("### Updating Facebook posts for ", page, "."))
   existing_posts <- 0
-
-  # Load necessary libraries
-  if (!require(dplyr)) { stop("Package dplyr is missing.") }
-  if (!require(rtweet)) { stop("Package RFacebook is missing.") }
-  if (!require(digest)) { stop("Package digest is missing.")}
 
   # Check parameters
   if (missing(page)) {
@@ -98,7 +95,7 @@ update_page <- function(page, token, datafile, go_back = TRUE,
       return(FALSE)
     }
 
-    data <- arrange(data, dplyr::desc(created_time))
+    data <- dplyr::arrange(data, dplyr::desc(.data$created_time))
 
     if (debug) {
       message(paste0("DEBUG: Newest post from pre-existing data: ",
@@ -176,14 +173,14 @@ update_page <- function(page, token, datafile, go_back = TRUE,
       }
 
       data <- dplyr::bind_rows(new_data, data)
-      data <- dplyr::distinct(data, id, .keep_all = TRUE)
-      data <- dplyr::arrange(data, dplyr::desc(created_time))
+      data <- dplyr::distinct(data, .data$id, .keep_all = TRUE)
+      data <- dplyr::arrange(data, dplyr::desc(.data$created_time))
     }
 
     # Combine new data with previously retrieved data
     data <- dplyr::bind_rows(data, old_data)
-    data <- dplyr::distinct(data, id, .keep_all = TRUE)
-    data <- dplyr::arrange(data, dplyr::desc(created_time))
+    data <- dplyr::distinct(data, .data$id, .keep_all = TRUE)
+    data <- dplyr::arrange(data, dplyr::desc(.data$created_time))
 
     # else: Run getPage for the first time
   } else {
@@ -297,8 +294,8 @@ update_page <- function(page, token, datafile, go_back = TRUE,
 
       # Combine older data with existing data
       data <- dplyr::bind_rows(data, older_data)
-      data <- dplyr::distinct(data, id, .keep_all = TRUE)
-      data <- dplyr::arrange(data, dplyr::desc(created_time))
+      data <- dplyr::distinct(data, .data$id, .keep_all = TRUE)
+      data <- dplyr::arrange(data, dplyr::desc(.data$created_time))
 
       # Break if max_repeats are reached
       if (repeat_counter >= max_repeats) {
@@ -350,6 +347,7 @@ update_page <- function(page, token, datafile, go_back = TRUE,
 #' @export
 #'
 #' @examples
+#' \dontrun{
 #' # You have to authenticate with Facebook's API first. For more in this visit
 #' # Rfacebooks documentation.
 #' fb_oauth <- Rfacebook::fbOAuth(app_id="123456789",
@@ -363,6 +361,7 @@ update_page <- function(page, token, datafile, go_back = TRUE,
 #' # the user's home directory in the folder "temp". They are named cnn.rds and
 #' # bbc.rds. If they do not already exist, both data sets are created.
 #' update_pages(pages = my_pages, token = fb_outh, datadir = "~/temp")
+#' }
 update_pages <- function(pages = NULL, token = NULL, datadir = "./data",
                          go_back = TRUE, n_posts = 100, feed = FALSE,
                          reactions = FALSE, max_repeats = 100, debug = FALSE) {

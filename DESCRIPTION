@@ -1,6 +1,6 @@
 Package: socmedhelpeRs
 Title: Useful functions for Rfacebook and rtweet
-Version: 3.0
+Version: 3.1
 Authors@R: person("Johann", "Gruendl", email = "mail@johanngruendl.at",
                   role = c("aut", "cre"))
 Description: Some functions I use to get updates from Facebook pages with

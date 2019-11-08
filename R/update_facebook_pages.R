@@ -71,6 +71,11 @@ update_page <- function(page, token, datafile, go_back = TRUE,
     old_data <- readRDS(datafile)
     existing_posts <- nrow(old_data)
 
+    # If scrape_time (data from old versions) does not exist, add empty column
+    if (!any(colnames(old_data) == "scrape_time")) {
+      old_data[, "scrape_time"] <- as.POSIXct(NA)
+    }
+
     # # oldest post
     # oldest <- substr(min(old_data$created_time), 1, 10)
     # # newest post
@@ -94,6 +99,7 @@ update_page <- function(page, token, datafile, go_back = TRUE,
       message("No posts downloadable.")
       return(FALSE)
     }
+    data[, "scrape_time"] <- Sys.time()
 
     data <- dplyr::arrange(data, dplyr::desc(.data$created_time))
 
@@ -143,6 +149,7 @@ update_page <- function(page, token, datafile, go_back = TRUE,
         message("No more new posts downloadable.")
         break
       }
+      new_data[, "scrape_time"] <- Sys.time()
 
       repeat_counter <- repeat_counter + 1
       # Debug messages
@@ -202,6 +209,7 @@ update_page <- function(page, token, datafile, go_back = TRUE,
       message("No posts downloadable.")
       return(FALSE)
     }
+    data[, "scrape_time"] <- Sys.time()
   }
 
   # Get older posts
@@ -247,6 +255,7 @@ update_page <- function(page, token, datafile, go_back = TRUE,
         message("No older posts downloadable.")
         break
       }
+      older_data[, "scrape_time"] <- Sys.time()
 
       if (debug) {
         message(paste0("DEBUG: Number of retrieved older posts: ",

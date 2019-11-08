@@ -65,6 +65,11 @@ update_twitter_user <- function(user, datafile, n = 100, token = NULL,
     old_data <- readRDS(datafile)
     existing_tweets <- nrow(old_data)
 
+    # If scrape_time (data from old versions) does not exist, add empty column
+    if (!any(colnames(old_data) == "scrape_time")) {
+      old_data[, "scrape_time"] <- as.POSIXct(NA)
+    }
+
     data <- tryCatch(
       {
         rtweet::get_timeline(user = user, n = n, home = FALSE,
@@ -81,6 +86,7 @@ update_twitter_user <- function(user, datafile, n = 100, token = NULL,
       message("No tweets downloadable.")
       return(FALSE)
     }
+    data[, "scrape_time"] <- Sys.time()
 
     data <- dplyr::arrange(data, dplyr::desc(.data$created_at))
 
@@ -129,6 +135,7 @@ update_twitter_user <- function(user, datafile, n = 100, token = NULL,
         message("No more new tweets downloadable.")
         break
       }
+      new_data[, "scrape_time"] <- Sys.time()
 
       repeat_counter <- repeat_counter + 1
       # Debug messages
@@ -188,6 +195,7 @@ update_twitter_user <- function(user, datafile, n = 100, token = NULL,
       message("No tweets downloadable.")
       return(FALSE)
     }
+    data[, "scrape_time"] <- Sys.time()
   }
 
   # Get older tweets
@@ -229,6 +237,7 @@ update_twitter_user <- function(user, datafile, n = 100, token = NULL,
       message("No old tweets downloadable.")
       break
     }
+    older_data[, "scrape_time"] <- Sys.time()
 
     if (debug) {
       message(paste0("DEBUG: Number of retrieved older tweets: ",

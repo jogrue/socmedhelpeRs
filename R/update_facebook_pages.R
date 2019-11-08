@@ -73,7 +73,7 @@ update_page <- function(page, token, datafile, go_back = TRUE,
 
     # If scrape_time (data from old versions) does not exist, add empty column
     if (!any(colnames(old_data) == "scrape_time")) {
-      old_data[, "scrape_time"] <- as.POSIXct(NA)
+      old_data[, "scrape_time"] <- as.POSIXct(character(0))
     }
 
     # # oldest post

@@ -67,6 +67,11 @@ merge_data <- function(old_folder, new_folder, output_folder,
     # If the file exists, it is loaded
     if (file.exists(old_file)) {
       old_data <- readRDS(old_file)
+      # If scrape_time (data from old versions) does not exist, add empty column
+      if (!any(colnames(old_data) == "scrape_time")) {
+        old_data[, "scrape_time"] <- as.POSIXct(character(0))
+      }
+
       # If there is an empty file, it is set to NULL and not included in the
       # output folder
       if (nrow(old_data) < 1) {
@@ -78,6 +83,11 @@ merge_data <- function(old_folder, new_folder, output_folder,
     }
     if (file.exists(new_file)) {
       new_data <- readRDS(new_file)
+      # If scrape_time (data from old versions) does not exist, add empty column
+      if (!any(colnames(new_data) == "scrape_time")) {
+        new_data[, "scrape_time"] <- as.POSIXct(character(0))
+      }
+
       # If there is an empty file, it is set to NULL and not included in the
       # output folder
       if (nrow(new_data) < 1) {

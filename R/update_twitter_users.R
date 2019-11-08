@@ -67,7 +67,7 @@ update_twitter_user <- function(user, datafile, n = 100, token = NULL,
 
     # If scrape_time (data from old versions) does not exist, add empty column
     if (!any(colnames(old_data) == "scrape_time")) {
-      old_data[, "scrape_time"] <- as.POSIXct(NA)
+      old_data[, "scrape_time"] <- as.POSIXct(character(0))
     }
 
     data <- tryCatch(

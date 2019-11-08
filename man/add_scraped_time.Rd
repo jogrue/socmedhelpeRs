@@ -13,5 +13,5 @@ versions of this package.}
 \description{
 In version 3.1 of this package a new variable "scrape_time" was added. It
 records the Sys.time() when the data was scraped. This functions adds this
-variable (with NA) to all files in an folder.
+variable (with NA) to all files in an folder (if it does not exist already).
 }

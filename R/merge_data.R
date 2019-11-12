@@ -122,12 +122,12 @@ merge_data <- function(old_folder, new_folder, output_folder,
                      "saved to the directory for merged files."))
       if (keep_newest) {
         merged_data <- dplyr::bind_rows(new_data, old_data)
-        merged_data <- dplyr::arange(merged_data,
-                                     dplyr::desc(scrape_time))
+        merged_data <- dplyr::arrange(merged_data,
+                                      dplyr::desc(scrape_time))
       } else {
         merged_data <- dplyr::bind_rows(old_data, new_data)
-        merged_data <- dplyr::arange(merged_data,
-                                     scrape_time)
+        merged_data <- dplyr::arrange(merged_data,
+                                      scrape_time)
       }
       merged_data <- merged_data[!duplicated(merged_data[, id]), ]
       merged_data <- dplyr::arrange(merged_data,

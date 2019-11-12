@@ -4,7 +4,8 @@
 \alias{merge_facebook_data}
 \title{Merge Facebook rds files from different folders}
 \usage{
-merge_facebook_data(old_folder, new_folder, output_folder)
+merge_facebook_data(old_folder, new_folder, output_folder,
+  keep_newest = TRUE)
 }
 \arguments{
 \item{old_folder}{Folder to look for old rds files.}
@@ -12,6 +13,11 @@ merge_facebook_data(old_folder, new_folder, output_folder)
 \item{new_folder}{Folder to look for new rds files.}
 
 \item{output_folder}{Folder to save merged rds files to.}
+
+\item{keep_newest}{Logical, indicating which version of a duplicate Tweet is
+kept. If TRUE (default), the newest Tweets according to scrape date are
+kept. Furthermore, Tweets from files in the new_folder are preferred over
+those from old_folder. FALSE prefers older data.}
 }
 \value{
 A data.frame with the results.

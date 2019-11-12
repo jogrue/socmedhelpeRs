@@ -13,11 +13,15 @@
 #'   "id" for Facebook data.
 #' @param sort Merged data is sorted by this parameter. Defaults to
 #'   "created_time" for Facebook data.
+#' @param keep_newest Logical, indicating which version of a duplicate Tweet is
+#'   kept. If TRUE (default), the newest Tweets according to scrape date are
+#'   kept. Furthermore, Tweets from files in the new_folder are preferred over
+#'   those from old_folder. FALSE prefers older data.
 #' @return A data.frame with the results.
 #'
 #' @export
 merge_data <- function(old_folder, new_folder, output_folder,
-                       id = "id", sort = "created_time") {
+                       id = "id", sort = "created_time", keep_newest = TRUE) {
   # Checking parameters
   if (is.null(old_folder) | is.null(new_folder) | is.null(output_folder)) {
     stop("All three folders have to be provided.")
@@ -116,7 +120,15 @@ merge_data <- function(old_folder, new_folder, output_folder,
       # Combine newer data with older data
       message(paste0("For ", i, " new and old data exist. Data is merged and ",
                      "saved to the directory for merged files."))
-      merged_data <- dplyr::bind_rows(old_data, new_data)
+      if (keep_newest) {
+        merged_data <- dplyr::bind_rows(new_data, old_data)
+        merged_data <- dplyr::arange(merged_data,
+                                     dplyr::desc(scrape_time))
+      } else {
+        merged_data <- dplyr::bind_rows(old_data, new_data)
+        merged_data <- dplyr::arange(merged_data,
+                                     scrape_time)
+      }
       merged_data <- merged_data[!duplicated(merged_data[, id]), ]
       merged_data <- dplyr::arrange(merged_data,
                                     dplyr::desc(dplyr::pull(merged_data, sort)))
@@ -141,15 +153,21 @@ merge_data <- function(old_folder, new_folder, output_folder,
 #' @param old_folder Folder to look for old rds files.
 #' @param new_folder Folder to look for new rds files.
 #' @param output_folder Folder to save merged rds files to.
+#' @param keep_newest Logical, indicating which version of a duplicate Tweet is
+#'   kept. If TRUE (default), the newest Tweets according to scrape date are
+#'   kept. Furthermore, Tweets from files in the new_folder are preferred over
+#'   those from old_folder. FALSE prefers older data.
 #' @return A data.frame with the results.
 #'
 #' @export
-merge_facebook_data <- function(old_folder, new_folder, output_folder) {
+merge_facebook_data <- function(old_folder, new_folder, output_folder,
+                                keep_newest = TRUE) {
   merge_data(old_folder = old_folder,
              new_folder = new_folder,
              output_folder = output_folder,
              id = "id",
-             sort = "created_time")
+             sort = "created_time",
+             keep_newest = keep_newest)
 }
 
 #' Merge Twitter rds files from different folders
@@ -163,13 +181,19 @@ merge_facebook_data <- function(old_folder, new_folder, output_folder) {
 #' @param old_folder Folder to look for old rds files.
 #' @param new_folder Folder to look for new rds files.
 #' @param output_folder Folder to save merged rds files to.
+#' @param keep_newest Logical, indicating which version of a duplicate Tweet is
+#'   kept. If TRUE (default), the newest Tweets according to scrape date are
+#'   kept. Furthermore, Tweets from files in the new_folder are preferred over
+#'   those from old_folder. FALSE prefers older data.
 #' @return A data.frame with the results.
 #'
 #' @export
-merge_twitter_data <- function(old_folder, new_folder, output_folder) {
+merge_twitter_data <- function(old_folder, new_folder, output_folder,
+                               keep_newest = TRUE) {
   merge_data(old_folder = old_folder,
              new_folder = new_folder,
              output_folder = output_folder,
              id = "status_id",
-             sort = "created_at")
+             sort = "created_at",
+             keep_newest = keep_newest)
 }

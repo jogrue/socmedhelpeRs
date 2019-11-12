@@ -5,7 +5,7 @@
 \title{Merge rds files from different folders}
 \usage{
 merge_data(old_folder, new_folder, output_folder, id = "id",
-  sort = "created_time")
+  sort = "created_time", keep_newest = TRUE)
 }
 \arguments{
 \item{old_folder}{Folder to look for old rds files.}
@@ -19,6 +19,11 @@ merge_data(old_folder, new_folder, output_folder, id = "id",
 
 \item{sort}{Merged data is sorted by this parameter. Defaults to
 "created_time" for Facebook data.}
+
+\item{keep_newest}{Logical, indicating which version of a duplicate Tweet is
+kept. If TRUE (default), the newest Tweets according to scrape date are
+kept. Furthermore, Tweets from files in the new_folder are preferred over
+those from old_folder. FALSE prefers older data.}
 }
 \value{
 A data.frame with the results.

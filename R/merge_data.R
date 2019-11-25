@@ -13,15 +13,20 @@
 #'   "id" for Facebook data.
 #' @param sort Merged data is sorted by this parameter. Defaults to
 #'   "created_time" for Facebook data.
-#' @param keep_newest Logical, indicating which version of a duplicate Tweet is
-#'   kept. If TRUE (default), the newest Tweets according to scrape date are
-#'   kept. Furthermore, Tweets from files in the new_folder are preferred over
-#'   those from old_folder. FALSE prefers older data.
+#' @param keep_newest Logical, indicating which version of a duplicate text is
+#'   kept. If TRUE (default), the newest texts according to scrape date are
+#'   kept if ignore_scrape_time is not TRUE. Furthermore, texts from files in
+#'   the new_folder are preferred over those from old_folder. FALSE prefers
+#'   older data.
+#' @param ignore_scrape_time Logical, indicating whether the scrape time should
+#'   be ignored for deciding which texts to keep. Defaults to FALSE. If TRUE,
+#'   only age only depends on where the file is stored (old or new folder).
 #' @return A data.frame with the results.
 #'
 #' @export
 merge_data <- function(old_folder, new_folder, output_folder,
-                       id = "id", sort = "created_time", keep_newest = TRUE) {
+                       id = "id", sort = "created_time", keep_newest = TRUE,
+                       ignore_scrape_time = FALSE) {
   # Checking parameters
   if (is.null(old_folder) | is.null(new_folder) | is.null(output_folder)) {
     stop("All three folders have to be provided.")
@@ -122,12 +127,16 @@ merge_data <- function(old_folder, new_folder, output_folder,
                      "saved to the directory for merged files."))
       if (keep_newest) {
         merged_data <- dplyr::bind_rows(new_data, old_data)
-        merged_data <- dplyr::arrange(merged_data,
-                                      dplyr::desc(scrape_time))
+        if (!ignore_scrape_time) {
+          merged_data <- dplyr::arrange(merged_data,
+                                        dplyr::desc(.data$scrape_time))
+        }
       } else {
         merged_data <- dplyr::bind_rows(old_data, new_data)
-        merged_data <- dplyr::arrange(merged_data,
-                                      scrape_time)
+        if (!ignore_scrape_time) {
+          merged_data <- dplyr::arrange(merged_data,
+                                        .data$scrape_time)
+        }
       }
       merged_data <- merged_data[!duplicated(merged_data[, id]), ]
       merged_data <- dplyr::arrange(merged_data,
@@ -157,17 +166,22 @@ merge_data <- function(old_folder, new_folder, output_folder,
 #'   kept. If TRUE (default), the newest Tweets according to scrape date are
 #'   kept. Furthermore, Tweets from files in the new_folder are preferred over
 #'   those from old_folder. FALSE prefers older data.
+#' @param ignore_scrape_time Logical, indicating whether the scrape time should
+#'   be ignored for deciding which texts to keep. Defaults to FALSE. If TRUE,
+#'   only age only depends on where the file is stored (old or new folder).
 #' @return A data.frame with the results.
 #'
 #' @export
 merge_facebook_data <- function(old_folder, new_folder, output_folder,
-                                keep_newest = TRUE) {
+                                keep_newest = TRUE,
+                                ignore_scrape_time = FALSE) {
   merge_data(old_folder = old_folder,
              new_folder = new_folder,
              output_folder = output_folder,
              id = "id",
              sort = "created_time",
-             keep_newest = keep_newest)
+             keep_newest = keep_newest,
+             ignore_scrape_time = ignore_scrape_time)
 }
 
 #' Merge Twitter rds files from different folders
@@ -181,19 +195,23 @@ merge_facebook_data <- function(old_folder, new_folder, output_folder,
 #' @param old_folder Folder to look for old rds files.
 #' @param new_folder Folder to look for new rds files.
 #' @param output_folder Folder to save merged rds files to.
-#' @param keep_newest Logical, indicating which version of a duplicate Tweet is
-#'   kept. If TRUE (default), the newest Tweets according to scrape date are
-#'   kept. Furthermore, Tweets from files in the new_folder are preferred over
+#' @param keep_newest Logical, indicating which version of a duplicate post is
+#'   kept. If TRUE (default), the newest posts according to scrape date are
+#'   kept. Furthermore, posts from files in the new_folder are preferred over
 #'   those from old_folder. FALSE prefers older data.
+#' @param ignore_scrape_time Logical, indicating whether the scrape time should
+#'   be ignored for deciding which texts to keep. Defaults to FALSE. If TRUE,
+#'   only age only depends on where the file is stored (old or new folder).
 #' @return A data.frame with the results.
 #'
 #' @export
 merge_twitter_data <- function(old_folder, new_folder, output_folder,
-                               keep_newest = TRUE) {
+                               keep_newest = TRUE, ignore_scrape_time = FALSE) {
   merge_data(old_folder = old_folder,
              new_folder = new_folder,
              output_folder = output_folder,
              id = "status_id",
              sort = "created_at",
-             keep_newest = keep_newest)
+             keep_newest = keep_newest,
+             ignore_scrape_time = ignore_scrape_time)
 }

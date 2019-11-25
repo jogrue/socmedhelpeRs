@@ -5,7 +5,7 @@
 \title{Merge Twitter rds files from different folders}
 \usage{
 merge_twitter_data(old_folder, new_folder, output_folder,
-  keep_newest = TRUE)
+  keep_newest = TRUE, ignore_scrape_time = FALSE)
 }
 \arguments{
 \item{old_folder}{Folder to look for old rds files.}
@@ -14,10 +14,14 @@ merge_twitter_data(old_folder, new_folder, output_folder,
 
 \item{output_folder}{Folder to save merged rds files to.}
 
-\item{keep_newest}{Logical, indicating which version of a duplicate Tweet is
-kept. If TRUE (default), the newest Tweets according to scrape date are
-kept. Furthermore, Tweets from files in the new_folder are preferred over
+\item{keep_newest}{Logical, indicating which version of a duplicate post is
+kept. If TRUE (default), the newest posts according to scrape date are
+kept. Furthermore, posts from files in the new_folder are preferred over
 those from old_folder. FALSE prefers older data.}
+
+\item{ignore_scrape_time}{Logical, indicating whether the scrape time should
+be ignored for deciding which texts to keep. Defaults to FALSE. If TRUE,
+only age only depends on where the file is stored (old or new folder).}
 }
 \value{
 A data.frame with the results.

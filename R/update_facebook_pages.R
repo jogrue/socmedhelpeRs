@@ -394,6 +394,7 @@ update_pages <- function(pages = NULL, token = NULL, datadir = "./data",
   # Run update for every page
   finished <- purrr::map2(pages, datafiles, update_page,
                           token = token, n_posts = n_posts, go_back = go_back,
+                          feed = feed, reactions = reactions,
                           max_repeats = max_repeats, debug = debug)
   return(finished)
 }

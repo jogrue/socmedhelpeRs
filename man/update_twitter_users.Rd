@@ -4,8 +4,14 @@
 \alias{update_twitter_users}
 \title{Update multiple Twitter users' timelines}
 \usage{
-update_twitter_users(users, datadir = "./raw-data", n = 100,
-  token = NULL, max_repeats = 100, debug = FALSE)
+update_twitter_users(
+  users,
+  datadir = "./raw-data",
+  n = 100,
+  token = NULL,
+  max_repeats = 100,
+  debug = FALSE
+)
 }
 \arguments{
 \item{users}{A named character vector. Names are the data file names,

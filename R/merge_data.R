@@ -11,8 +11,12 @@
 #' @param output_folder Folder to save merged rds files to.
 #' @param id Unique id(s), only data where id is distinct is kept. Defaults to
 #'   "id" for Facebook data.
-#' @param sort Merged data is sorted by this parameter. Defaults to
-#'   "created_time" for Facebook data.
+#' @param sort Merged data is sorted by these variable(s). Defaults to
+#'   "created_time", then "scrape_time", and then "id" for Facebook data.
+#' @param sort_direction Sort parameters are applied in this directions. Should
+#'   be length 1 (all parameters are sorted this way) or the same length as
+#'   sort. Possible values are "desc" for descending and "asc" or "" for
+#'   ascending.
 #' @param keep_newest Logical, indicating which version of a duplicate text is
 #'   kept. If TRUE (default), the newest texts according to scrape date are
 #'   kept if ignore_scrape_time is not TRUE. Furthermore, texts from files in
@@ -25,7 +29,10 @@
 #'
 #' @export
 merge_data <- function(old_folder, new_folder, output_folder,
-                       id = "id", sort = "created_time", keep_newest = TRUE,
+                       id = "id",
+                       sort = c("created_time", "scrape_time", "id"),
+                       sort_direction = c("desc", "desc", "asc"),
+                       keep_newest = TRUE,
                        ignore_scrape_time = FALSE) {
   # Checking parameters
   if (is.null(old_folder) | is.null(new_folder) | is.null(output_folder)) {
@@ -54,6 +61,16 @@ merge_data <- function(old_folder, new_folder, output_folder,
   }
   if (length(new_files) < 1) {
     stop(paste0("There are no rds files in ", new_folder, "."))
+  }
+
+  if (length(sort_direction) != length(sort) &
+      length(sort_direction) != 1) {
+    stop(paste0("Number of strings for sort_direction does not match ",
+                "the number of parameters in sort. Length of sort_direction ",
+                "should be 1 or the same length as sort."))
+  }
+  if (length(sort_direction) == 1) {
+    sort_direction <- rep(sort_direction[1], length(sort))
   }
 
   files <- c(old_files, new_files)
@@ -139,8 +156,19 @@ merge_data <- function(old_folder, new_folder, output_folder,
         }
       }
       merged_data <- merged_data[!duplicated(merged_data[, id]), ]
-      merged_data <- dplyr::arrange(merged_data,
-                                    dplyr::desc(dplyr::pull(merged_data, sort)))
+      for (j in length(sort):1) {
+        if (sort_direction[j] == "desc") {
+          merged_data <- dplyr::arrange(
+            merged_data,
+            dplyr::desc(dplyr::pull(merged_data, sort[j]))
+          )
+        } else {
+          merged_data <- dplyr::arrange(
+            merged_data,
+            dplyr::pull(merged_data, sort[j])
+          )
+        }
+      }
       saveRDS(object = merged_data, file = output_file)
       results[results$file == i, ]$result <-
         paste0("Data merged, ",
@@ -179,7 +207,8 @@ merge_facebook_data <- function(old_folder, new_folder, output_folder,
              new_folder = new_folder,
              output_folder = output_folder,
              id = "id",
-             sort = "created_time",
+             sort = c("created_time", "scrape_time", "id"),
+             sort_direction = c("desc", "desc", "asc"),
              keep_newest = keep_newest,
              ignore_scrape_time = ignore_scrape_time)
 }
@@ -211,7 +240,8 @@ merge_twitter_data <- function(old_folder, new_folder, output_folder,
              new_folder = new_folder,
              output_folder = output_folder,
              id = "status_id",
-             sort = "created_at",
+             sort = c("created_at", "scrape_time", "status_id"),
+             sort_direction = c("desc", "desc", "asc"),
              keep_newest = keep_newest,
              ignore_scrape_time = ignore_scrape_time)
 }

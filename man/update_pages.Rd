@@ -4,9 +4,17 @@
 \alias{update_pages}
 \title{Update multiple Facebook pages}
 \usage{
-update_pages(pages = NULL, token = NULL, datadir = "./data",
-  go_back = TRUE, n_posts = 100, feed = FALSE, reactions = FALSE,
-  max_repeats = 100, debug = FALSE)
+update_pages(
+  pages = NULL,
+  token = NULL,
+  datadir = "./data",
+  go_back = TRUE,
+  n_posts = 100,
+  feed = FALSE,
+  reactions = FALSE,
+  max_repeats = 100,
+  debug = FALSE
+)
 }
 \arguments{
 \item{pages}{A named character vector. Names are the data file names,

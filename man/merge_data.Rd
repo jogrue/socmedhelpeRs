@@ -4,9 +4,16 @@
 \alias{merge_data}
 \title{Merge rds files from different folders}
 \usage{
-merge_data(old_folder, new_folder, output_folder, id = "id",
-  sort = "created_time", keep_newest = TRUE,
-  ignore_scrape_time = FALSE)
+merge_data(
+  old_folder,
+  new_folder,
+  output_folder,
+  id = "id",
+  sort = c("created_time", "scrape_time", "id"),
+  sort_direction = c("desc", "desc", "asc"),
+  keep_newest = TRUE,
+  ignore_scrape_time = FALSE
+)
 }
 \arguments{
 \item{old_folder}{Folder to look for old rds files.}
@@ -18,8 +25,13 @@ merge_data(old_folder, new_folder, output_folder, id = "id",
 \item{id}{Unique id(s), only data where id is distinct is kept. Defaults to
 "id" for Facebook data.}
 
-\item{sort}{Merged data is sorted by this parameter. Defaults to
-"created_time" for Facebook data.}
+\item{sort}{Merged data is sorted by these variable(s). Defaults to
+"created_time", then "scrape_time", and then "id" for Facebook data.}
+
+\item{sort_direction}{Sort parameters are applied in this directions. Should
+be length 1 (all parameters are sorted this way) or the same length as
+sort. Possible values are "desc" for descending and "asc" or "" for
+ascending.}
 
 \item{keep_newest}{Logical, indicating which version of a duplicate text is
 kept. If TRUE (default), the newest texts according to scrape date are

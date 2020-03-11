@@ -4,9 +4,17 @@
 \alias{update_page}
 \title{Update or get posts from a Facebook page}
 \usage{
-update_page(page, token, datafile, go_back = TRUE, n_posts = 100,
-  feed = FALSE, reactions = FALSE, max_repeats = 100,
-  debug = FALSE)
+update_page(
+  page,
+  token,
+  datafile,
+  go_back = TRUE,
+  n_posts = 100,
+  feed = FALSE,
+  reactions = FALSE,
+  max_repeats = 100,
+  debug = FALSE
+)
 }
 \arguments{
 \item{page}{A page name or ID.}

@@ -4,8 +4,14 @@
 \alias{update_twitter_user}
 \title{Update or get tweets from a Twitter wall}
 \usage{
-update_twitter_user(user, datafile, n = 100, token = NULL,
-  max_repeats = 100, debug = FALSE)
+update_twitter_user(
+  user,
+  datafile,
+  n = 100,
+  token = NULL,
+  max_repeats = 100,
+  debug = FALSE
+)
 }
 \arguments{
 \item{user}{A twitter user name or ID.}

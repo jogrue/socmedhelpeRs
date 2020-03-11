@@ -4,8 +4,13 @@
 \alias{merge_facebook_data}
 \title{Merge Facebook rds files from different folders}
 \usage{
-merge_facebook_data(old_folder, new_folder, output_folder,
-  keep_newest = TRUE, ignore_scrape_time = FALSE)
+merge_facebook_data(
+  old_folder,
+  new_folder,
+  output_folder,
+  keep_newest = TRUE,
+  ignore_scrape_time = FALSE
+)
 }
 \arguments{
 \item{old_folder}{Folder to look for old rds files.}

@@ -1,3 +1,22 @@
+
+#' Get additional information for pages
+#'
+#' @param page A page ID.
+#' @param token Either a temporary access token created at
+#'   https://developers.facebook.com/tools/explorer or the OAuth token created
+#'   with fbOAuth.
+#' @param fields The API fields that are requested. "fan_count" is the default.
+#' @param api The API-version to use, e.g., "v2.8". NULL is the default.
+#'
+#' @return A named list where the page id and the additional fields are stored.
+#' @export
+get_pageinfo <- function(page, token, fields = "fan_count", api = NULL) {
+  url <- paste0('https://graph.facebook.com/', page, '?fields=',
+                paste(fields, collapse = ","))
+  Rfacebook::callAPI(url = url, token = token, api = api)
+}
+
+
 #' Update or get posts from a Facebook page
 #'
 #' This function updates one Facebook page with \link{Rfacebook}'s getPage. It
@@ -76,6 +95,35 @@ update_page <- function(page, token, datafile, go_back = TRUE,
       old_data[, "scrape_time"] <- as.POSIXct(character(0))
     }
 
+    # If fan_count (data from old versions) does not exist, add empty column
+    if (!any(colnames(old_data) == "fan_count")) {
+      old_data[, "fan_count"] <- as.numeric(character(0))
+    }
+
+    # If reactions = TRUE but do no exist, add empty columns
+    if (reactions) {
+      if (!any(colnames(old_data) == "love_count")) {
+        old_data[, "love_count"] <- as.numeric(character(0))
+      }
+      if (!any(colnames(old_data) == "haha_count")) {
+        old_data[, "haha_count"] <- as.numeric(character(0))
+      }
+      if (!any(colnames(old_data) == "wow_count")) {
+        old_data[, "wow_count"] <- as.numeric(character(0))
+      }
+      if (!any(colnames(old_data) == "sad_count")) {
+        old_data[, "sad_count"] <- as.numeric(character(0))
+      }
+      if (!any(colnames(old_data) == "angry_count")) {
+        old_data[, "angry_count"] <- as.numeric(character(0))
+      }
+    }
+
+    var_order <- current_facebook_sort()
+    # Reorder variables
+    if (!identical(names(old_data), var_order)) {
+      old_data <- sort_data(data = old_data)
+    }
     # # oldest post
     # oldest <- substr(min(old_data$created_time), 1, 10)
     # # newest post
@@ -100,6 +148,8 @@ update_page <- function(page, token, datafile, go_back = TRUE,
       return(FALSE)
     }
     data[, "scrape_time"] <- Sys.time()
+    data[, "fan_count"] <-
+      get_pageinfo(page = page, token = token)[["fan_count"]]
 
     data <- dplyr::arrange(data, dplyr::desc(.data$created_time))
 
@@ -150,6 +200,8 @@ update_page <- function(page, token, datafile, go_back = TRUE,
         break
       }
       new_data[, "scrape_time"] <- Sys.time()
+      new_data[, "fan_count"] <-
+        get_pageinfo(page = page, token = token)[["fan_count"]]
 
       repeat_counter <- repeat_counter + 1
       # Debug messages
@@ -210,6 +262,8 @@ update_page <- function(page, token, datafile, go_back = TRUE,
       return(FALSE)
     }
     data[, "scrape_time"] <- Sys.time()
+    data[, "fan_count"] <-
+      get_pageinfo(page = page, token = token)[["fan_count"]]
   }
 
   # Get older posts
@@ -256,6 +310,8 @@ update_page <- function(page, token, datafile, go_back = TRUE,
         break
       }
       older_data[, "scrape_time"] <- Sys.time()
+      older_data[, "fan_count"] <-
+        get_pageinfo(page = page, token = token)[["fan_count"]]
 
       if (debug) {
         message(paste0("DEBUG: Number of retrieved older posts: ",

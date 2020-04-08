@@ -10,7 +10,7 @@
 #' @export
 add_scraped_time <- function(dir) {
   # Checking parameters
-  if (is.null(dir)){
+  if (missing(dir)){
     stop("A directory with social media data has to be provided.")
   }
   if (!dir.exists(dir)) {
@@ -39,6 +39,247 @@ add_scraped_time <- function(dir) {
         saveRDS(data, file)
         message(paste0("Added empty variable scrape_time for ", i, "!"))
       }
+    }
+  }
+}
+
+#' Add variable fan_count to old existing data
+#'
+#' In version 3.2 of this package a new variable "fan_count" was added to
+#' Facebook data. It records the fan count of pages when scraping posts. This
+#' functions adds this variable (with NA) to all files in an folder (if it does
+#' not exist already).
+#'
+#' @param dir A path to a directory containing data files generated with (older)
+#'            versions of this package.
+#'
+#' @export
+add_fan_count <- function(dir) {
+  # Checking parameters
+  if (missing(dir)){
+    stop("A directory with social media data has to be provided.")
+  }
+  if (!dir.exists(dir)) {
+    stop("Directory given for data does not exist.")
+  }
+
+  # Adjust directory path
+  if (!endsWith(dir, "/")) { dir <- paste0(dir, "/") }
+
+  # Read and check file names
+  files <- list.files(path = dir, pattern = "*.rds")
+  if (length(files) < 1) {
+    stop(paste0("There are no rds files in ", dir, "."))
+  }
+
+  # Add fan_count variable if it does not already exist
+  for (i in files) {
+    file <- paste0(dir, i)
+    # If the file exists, it is loaded
+    if (file.exists(file)) {
+      data <- readRDS(file)
+      # If scrape_time (data from old versions) does not exist, add empty column
+      # Also save data set
+      if (!any(colnames(data) == "fan_count")) {
+        data[, "fan_count"] <- as.numeric(character(0))
+        saveRDS(data, file)
+        message(paste0("Added empty variable fan_count for ", i, "!"))
+      }
+    }
+  }
+}
+
+#' Add variables for reactions to old existing data
+#'
+#' If previous data was scraped without reactions, empty reaction variables are
+#' added here if such variables to not exist already.
+#'
+#' @param dir A path to a directory containing data files generated with this
+#' package.
+#' @param sort Should variables be sorted according to current package default?
+#' Defaults to TRUE.
+#'
+#' @export
+add_reactions <- function(dir, sort = TRUE) {
+  # Checking parameters
+  if (missing(dir)){
+    stop("A directory with social media data has to be provided.")
+  }
+  if (!dir.exists(dir)) {
+    stop("Directory given for data does not exist.")
+  }
+
+  # Adjust directory path
+  if (!endsWith(dir, "/")) { dir <- paste0(dir, "/") }
+
+  # Read and check file names
+  files <- list.files(path = dir, pattern = "*.rds")
+  if (length(files) < 1) {
+    stop(paste0("There are no rds files in ", dir, "."))
+  }
+
+  # Add reaction variables if they do not already exist
+  for (i in files) {
+    file <- paste0(dir, i)
+    # If the file exists, it is loaded
+    if (file.exists(file)) {
+      data <- readRDS(file)
+      change_made <- FALSE
+      # If scrape_time (data from old versions) does not exist, add empty column
+      # Also save data set
+      if (!any(colnames(data) == "love_count")) {
+        data[, "love_count"] <- as.numeric(character(0))
+        change_made <- TRUE
+      }
+      if (!any(colnames(data) == "haha_count")) {
+        data[, "haha_count"] <- as.numeric(character(0))
+        change_made <- TRUE
+      }
+      if (!any(colnames(data) == "wow_count")) {
+        data[, "wow_count"] <- as.numeric(character(0))
+        change_made <- TRUE
+      }
+      if (!any(colnames(data) == "sad_count")) {
+        data[, "sad_count"] <- as.numeric(character(0))
+        change_made <- TRUE
+      }
+      if (!any(colnames(data) == "angry_count")) {
+        data[, "angry_count"] <- as.numeric(character(0))
+        change_made <- TRUE
+      }
+      if (change_made) {
+        if (sort) {
+          data <- sort_data(data = data)
+        }
+        saveRDS(data, file)
+        message(paste0("Added empty reaction variables for ", i, "!"))
+      }
+    }
+  }
+}
+
+
+#' Current order of variables in Facebook data
+#'
+#' @return The current list of variable names for sorting Facebook data.
+#' @export
+current_facebook_sort <- function() {
+  c(
+    "id",
+    "likes_count",
+    "from_id",
+    "from_name",
+    "message",
+    "created_time",
+    "type",
+    "link",
+    "story",
+    "comments_count",
+    "shares_count",
+    "love_count",
+    "haha_count",
+    "wow_count",
+    "sad_count",
+    "angry_count",
+    "scrape_time",
+    "fan_count"
+  )
+}
+
+#' Sort a dataset
+#'
+#' A social media dataset is ordered according to a list of variable names.
+#' Unmentioned variables are attached at the end.
+#'
+#' @param data A data.frame generated with this package.
+#' @param sorted_variables A list of variable names according to which the
+#' dataset is sorted. Defaults to the package default for Facebook data.
+#'
+#' @return The sorted dataset.
+#' @export
+sort_data <- function(data, sorted_variables) {
+  # Checking parameters
+  if (missing(data)){
+    stop(paste0("A data.frame with social media data has to be provided."))
+  }
+  if (missing(sorted_variables)) {
+    sorted_variables <- current_facebook_sort()
+  }
+  dplyr::select(
+    data,
+    tidyselect::all_of(sorted_variables[sorted_variables %in% names(data)]),
+    dplyr::everything()
+  )
+}
+
+#' Sort data stored in a rds file
+#'
+#' A dataset stored in an rds file is ordered according to a list of variable
+#' names. Unmentioned variables are attached at the end and the original file
+#' is overwritten with the sorted dataset.
+#'
+#' @param file A path to an rds file generated with this package and containing
+#' social media data.
+#' @param sorted_variables A list of variable names according to which the
+#' dataset is sorted. Defaults to the package default for Facebook data.
+#'
+#' @export
+sort_file <- function(file, sorted_variables) {
+  # Checking parameters
+  if (missing(file)){
+    stop(paste0("A file path to social media data has to be provided."))
+  }
+  if (!file.exists(file)) {
+    stop("File path given for data does not exist.")
+  }
+  if (missing(sorted_variables)) {
+    sorted_variables <- current_facebook_sort()
+  }
+  data <- readRDS(file)
+  if (!identical(names(data), sorted_variables)) {
+    data <- sort_data(data, sorted_variables)
+    saveRDS(data, file)
+    message(paste0("Sorted dataset in ", file, "!"))
+  }
+}
+
+
+#' Sort all data files from a directory
+#'
+#' All datasets from one folder with rds files are ordered according to a list
+#' of variable names. Unmentioned variables are attached at the end and the
+#' original files are overwritten with the sorted datasets.
+#'
+#' @param dir A path to a directory containing data files generated with this
+#' package.
+#' @param sorted_variables A list of variable names according to which the
+#' dataset is sorted. Defaults to the package default for Facebook data.
+#'
+#' @export
+sort_dir <- function(dir, sorted_variables) {
+  # Checking parameters
+  if (missing(dir)){
+    stop(paste0("A directory containing social media data has to be provided."))
+  }
+  if (!dir.exists(dir)) {
+    stop("Directory given for data does not exist.")
+  }
+  if (missing(sorted_variables)) {
+    sorted_variables <- current_facebook_sort()
+  }
+  # Adjust directory path
+  if (!endsWith(dir, "/")) { dir <- paste0(dir, "/") }
+  # Read and check file names
+  files <- list.files(path = dir, pattern = "*.rds")
+  if (length(files) < 1) {
+    stop(paste0("There are no rds files in ", dir, "."))
+  }
+  # Sort all files
+  for (i in files) {
+    file <- paste0(dir, i)
+    # If the file exists, it is loaded
+    if (file.exists(file)) {
+      sort_file(file = file, sorted_variables = sorted_variables)
     }
   }
 }

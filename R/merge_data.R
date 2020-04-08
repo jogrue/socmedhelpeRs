@@ -35,7 +35,7 @@ merge_data <- function(old_folder, new_folder, output_folder,
                        keep_newest = TRUE,
                        ignore_scrape_time = FALSE) {
   # Checking parameters
-  if (is.null(old_folder) | is.null(new_folder) | is.null(output_folder)) {
+  if (missing(old_folder) | missing(new_folder) | missing(output_folder)) {
     stop("All three folders have to be provided.")
   }
 

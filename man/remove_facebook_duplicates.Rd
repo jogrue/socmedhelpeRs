@@ -16,20 +16,21 @@ remove_facebook_duplicates(
 
 \item{file}{A file path to one Facebook data file (as rds file).}
 
-\item{sort}{Merged data is sorted by these variable(s). Defaults to
+\item{sort}{Data is sorted by these variable(s). Defaults to
 c("created_time", "scrape_time", "id") to sort data by these variables.
-The sort is applied before duplicates are removed. Therefore by default}
+The sort is applied before duplicates are removed. Therefore by default
+newer data (by scrape_time) is kept.}
 
 \item{sort_direction}{Sort parameters are applied in this directions. Should
 be length 1 (all parameters are sorted this way) or the same length as
 sort. Possible values are "desc" for descending and "asc" or "" for
 ascending. Defaults to c("desc", "desc", "asc"). Thus, by default,
-created_time and scrape_time are sorted descendingly and if both are the
-same they are sorted by message id ascendingly.}
+created_time is sorted descendingly, posts with the same created_time are
+sorted descendingly by scrape_time and then ascendingly by message id.}
 }
 \description{
-Somehow duplicates ended up in the data, were the same post is stored with
+Somehow duplicates ended up in the data, where the same post is stored with
 two different message IDs. Here, only messages where the sender (from_id),
 message text (message), time of the posting (created_time), and message type
-(type) are distinct. You can provide either a directory or a file
+(type) are distinct are kept. You can provide either a directory or a file.
 }

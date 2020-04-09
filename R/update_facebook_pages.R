@@ -147,11 +147,23 @@ update_page <- function(page, token, datafile, go_back = TRUE,
       message("No posts downloadable.")
       return(FALSE)
     }
+    # If reactions are TRUE Rfacebook sorts the data ascendingly (oldest post
+    # first). I now by default rearrange the downloaded data here:
+    data <- dplyr::arrange(
+      data,
+      dplyr::desc(.data$created_time),
+      dplyr::desc(.data$id)
+    )
     data[, "scrape_time"] <- Sys.time()
     data[, "fan_count"] <-
       get_pageinfo(page = page, token = token)[["fan_count"]]
 
-    data <- dplyr::arrange(data, dplyr::desc(.data$created_time))
+    data <- dplyr::arrange(
+        data,
+        dplyr::desc(.data$created_time),
+        dplyr::desc(.data$scrape_time),
+        .data$id
+    )
 
     if (debug) {
       message(paste0("DEBUG: Newest post from pre-existing data: ",
@@ -199,6 +211,13 @@ update_page <- function(page, token, datafile, go_back = TRUE,
         message("No more new posts downloadable.")
         break
       }
+      # If reactions are TRUE Rfacebook sorts the data ascendingly (oldest post
+      # first). I now by default rearrange the downloaded data here:
+      new_data <- dplyr::arrange(
+        new_data,
+        dplyr::desc(.data$created_time),
+        dplyr::desc(.data$id)
+      )
       new_data[, "scrape_time"] <- Sys.time()
       new_data[, "fan_count"] <-
         get_pageinfo(page = page, token = token)[["fan_count"]]
@@ -233,13 +252,23 @@ update_page <- function(page, token, datafile, go_back = TRUE,
 
       data <- dplyr::bind_rows(new_data, data)
       data <- dplyr::distinct(data, .data$id, .keep_all = TRUE)
-      data <- dplyr::arrange(data, dplyr::desc(.data$created_time))
+      data <- dplyr::arrange(
+        data,
+        dplyr::desc(.data$created_time),
+        dplyr::desc(.data$scrape_time),
+        .data$id
+      )
     }
 
     # Combine new data with previously retrieved data
     data <- dplyr::bind_rows(data, old_data)
     data <- dplyr::distinct(data, .data$id, .keep_all = TRUE)
-    data <- dplyr::arrange(data, dplyr::desc(.data$created_time))
+    data <- dplyr::arrange(
+      data,
+      dplyr::desc(.data$created_time),
+      dplyr::desc(.data$scrape_time),
+      .data$id
+    )
 
     # else: Run getPage for the first time
   } else {
@@ -261,6 +290,13 @@ update_page <- function(page, token, datafile, go_back = TRUE,
       message("No posts downloadable.")
       return(FALSE)
     }
+    # If reactions are TRUE Rfacebook sorts the data ascendingly (oldest post
+    # first). I now by default rearrange the downloaded data here:
+    data <- dplyr::arrange(
+      data,
+      dplyr::desc(.data$created_time),
+      dplyr::desc(.data$id)
+    )
     data[, "scrape_time"] <- Sys.time()
     data[, "fan_count"] <-
       get_pageinfo(page = page, token = token)[["fan_count"]]
@@ -288,7 +324,7 @@ update_page <- function(page, token, datafile, go_back = TRUE,
         message(paste0("DEBUG: Oldest post for getting older posts: ", oldest))
       }
 
-      # Get older tweets
+      # Get older posts
       older_data <- tryCatch(
         {
           Rfacebook::getPage(page, token = token, n = n_posts,
@@ -309,6 +345,13 @@ update_page <- function(page, token, datafile, go_back = TRUE,
         message("No older posts downloadable.")
         break
       }
+      # If reactions are TRUE Rfacebook sorts the data ascendingly (oldest post
+      # first). I now by default rearrange the downloaded data here:
+      older_data <- dplyr::arrange(
+        older_data,
+        dplyr::desc(.data$created_time),
+        dplyr::desc(.data$id)
+      )
       older_data[, "scrape_time"] <- Sys.time()
       older_data[, "fan_count"] <-
         get_pageinfo(page = page, token = token)[["fan_count"]]
@@ -360,7 +403,12 @@ update_page <- function(page, token, datafile, go_back = TRUE,
       # Combine older data with existing data
       data <- dplyr::bind_rows(data, older_data)
       data <- dplyr::distinct(data, .data$id, .keep_all = TRUE)
-      data <- dplyr::arrange(data, dplyr::desc(.data$created_time))
+      data <- dplyr::arrange(
+        data,
+        dplyr::desc(.data$created_time),
+        dplyr::desc(.data$scrape_time),
+        .data$id
+      )
 
       # Break if max_repeats are reached
       if (repeat_counter >= max_repeats) {

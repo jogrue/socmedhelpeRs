@@ -31,7 +31,9 @@ merge_data(
 \item{sort_direction}{Sort parameters are applied in this directions. Should
 be length 1 (all parameters are sorted this way) or the same length as
 sort. Possible values are "desc" for descending and "asc" or "" for
-ascending.}
+ascending. Defaults to c("desc", "desc", "asc"). Thus, by default,
+created_time is sorted descendingly, posts with the same created_time are
+sorted descendingly by scrape_time and then ascendingly by message id.}
 
 \item{keep_newest}{Logical, indicating which version of a duplicate text is
 kept. If TRUE (default), the newest texts according to scrape date are

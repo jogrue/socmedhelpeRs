@@ -32,6 +32,7 @@ devtools::install_github("jogrue/socmedhelpeRs")
 # Loading the package
 library("socmedhelpeRs")
 
+
 # Twitter -----------------------------------------------------------------
 
 # You have to authenticate with Twitter's API first. For more on this visit
@@ -57,7 +58,6 @@ update_twitter_users(users = my_users, datadir = "~/temp")
 # try to get newer Tweets (and older ones if you did not download all of them
 # before) for the accounts in my_users.
 update_twitter_users(users = my_users, datadir = "~/temp")
-
 
 
 # Facebook ----------------------------------------------------------------
